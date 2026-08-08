@@ -1,0 +1,156 @@
+<?php
+/**
+ * Alexandra Montessori — theme functions.
+ *
+ * Integrates the React/Vite SPA (built into /dist) into WordPress:
+ *  - enqueues the hashed entry JS (as an ES module) + CSS read from .vite/manifest.json,
+ *    so the correct files are used after every rebuild without hardcoding hashes;
+ *  - loads the Poppins web font the design uses;
+ *  - serves the SPA shell for every front-end URL with a 200 status so client-side
+ *    routes (/about, /nurseries/hammersmith, …) work on refresh and deep-link.
+ */
+
+if (!defined('ABSPATH')) {
+  exit;
+}
+
+function alexandra_montessori_theme_setup() {
+  add_theme_support('title-tag');
+}
+add_action('after_setup_theme', 'alexandra_montessori_theme_setup');
+
+/**
+ * Filesystem path / URL of the built SPA in the theme's /dist directory.
+ */
+function alexandra_dist_path() {
+  return get_template_directory() . '/dist';
+}
+function alexandra_dist_uri() {
+  return get_template_directory_uri() . '/dist';
+}
+
+/**
+ * Read and decode dist/.vite/manifest.json once per request.
+ * Returns an associative array, or an empty array if no build is present.
+ */
+function alexandra_vite_manifest() {
+  static $manifest = null;
+  if ($manifest !== null) {
+    return $manifest;
+  }
+  $file = alexandra_dist_path() . '/.vite/manifest.json';
+  if (!is_readable($file)) {
+    $manifest = array();
+    return $manifest;
+  }
+  $decoded = json_decode(file_get_contents($file), true);
+  $manifest = is_array($decoded) ? $decoded : array();
+  return $manifest;
+}
+
+/**
+ * Enqueue the built SPA assets (CSS + hashed ES-module entry) plus the web font.
+ */
+function alexandra_montessori_enqueue_assets() {
+  // Theme stylesheet header (keeps a valid theme + small body reset).
+  wp_enqueue_style(
+    'alexandra-montessori-style',
+    get_stylesheet_uri(),
+    array(),
+    wp_get_theme()->get('Version')
+  );
+
+  // Design web font (Poppins) — matches the React app's typography.
+  wp_enqueue_style(
+    'alexandra-montessori-fonts',
+    'https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap',
+    array(),
+    null
+  );
+
+  $manifest = alexandra_vite_manifest();
+  if (empty($manifest['index.html'])) {
+    return; // No build present — nothing more to enqueue.
+  }
+  $entry = $manifest['index.html'];
+  $dist  = alexandra_dist_uri();
+
+  // Bundled CSS (content-hashed → version null, no ?ver= cache-buster needed).
+  if (!empty($entry['css'])) {
+    foreach ($entry['css'] as $i => $css) {
+      wp_enqueue_style(
+        'alexandra-app' . ($i ? '-' . $i : ''),
+        $dist . '/' . $css,
+        array(),
+        null
+      );
+    }
+  }
+
+  // Hashed entry JS, loaded in the footer as an ES module (see filter below).
+  if (!empty($entry['file'])) {
+    wp_enqueue_script(
+      'alexandra-app',
+      $dist . '/' . $entry['file'],
+      array(),
+      null,
+      true
+    );
+  }
+}
+add_action('wp_enqueue_scripts', 'alexandra_montessori_enqueue_assets');
+
+/**
+ * Vite output is ESM — mark the entry <script> as type="module" (+ crossorigin),
+ * matching how Vite itself injects the tag.
+ */
+function alexandra_montessori_script_type($tag, $handle, $src) {
+  if ($handle === 'alexandra-app') {
+    return '<script type="module" crossorigin src="' . esc_url($src) . '"></script>' . "\n";
+  }
+  return $tag;
+}
+add_filter('script_loader_tag', 'alexandra_montessori_script_type', 10, 3);
+
+/**
+ * Preconnect to the Google Fonts hosts and modulepreload the entry's static
+ * import chunks, mirroring Vite's own <head> hints for faster startup.
+ */
+function alexandra_montessori_head_hints() {
+  echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
+  echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
+
+  $manifest = alexandra_vite_manifest();
+  if (empty($manifest['index.html']['imports'])) {
+    return;
+  }
+  $dist = alexandra_dist_uri();
+  foreach ($manifest['index.html']['imports'] as $key) {
+    if (!empty($manifest[$key]['file'])) {
+      echo '<link rel="modulepreload" crossorigin href="'
+        . esc_url($dist . '/' . $manifest[$key]['file']) . '">' . "\n";
+    }
+  }
+}
+add_action('wp_head', 'alexandra_montessori_head_hints', 1);
+
+/**
+ * SPA routing: the theme has a single template (index.php), which WordPress also
+ * uses as the 404 fallback, so every unmatched front-end URL already renders the
+ * React shell. Normalise the HTTP status to 200 on those routes so deep links and
+ * refreshes (e.g. /about, /nurseries/hammersmith) are not served as 404s.
+ * Admin, REST (wp-json), wp-login and real files are never is_404(), so untouched.
+ */
+function alexandra_montessori_spa_status() {
+  if (!is_admin() && is_404()) {
+    status_header(200);
+    nocache_headers();
+  }
+}
+add_action('template_redirect', 'alexandra_montessori_spa_status');
+
+/**
+ * Keep the WP admin bar from overlapping the SPA's fixed navbar on the front end.
+ * (Reversible — remove this line to restore the admin bar for logged-in users.)
+ */
+add_filter('show_admin_bar', '__return_false');

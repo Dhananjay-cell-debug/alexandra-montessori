@@ -1,0 +1,22 @@
+# Never upload local credentials or deployment keys.
+.env*
+.ssh_deploy_key
+
+# Vercel hosts only the static React client. WordPress remains a separate,
+# restorable PHP/MySQL system and is intentionally not part of this upload.
+wordpress/
+
+# Development, QA, migration, and local-only material.
+.vercel/
+dist/
+node_modules/
+marketing/
+scripts/
+tests/
+test-results/
+tmp/
+*.log
+*.md
+*.py
+*.sh
+.htaccess

@@ -1,0 +1,48 @@
+{
+  "verifiedUtc": "2026-08-08T08:14:10.5389288Z",
+  "verification": "Every encrypted archive was re-read from disk after encryption. Size and SHA-256 were compared with MANIFEST.json.",
+  "productionRoundTrip": {
+    "performed": true,
+    "authenticatedDecryptionPassed": true,
+    "plainSha256MatchedManifest": true,
+    "tarReadable": true
+  },
+  "files": [
+    {
+      "file": "workspace-app.tar.gz.amvault",
+      "bytes": 921000911,
+      "sha256": "e1230f419b24ca1842872ac88685ee1c894125a20c582540dd7055f8a290a1f1",
+      "match": true
+    },
+    {
+      "file": "workspace-original-assets.tar.gz.amvault",
+      "bytes": 1135437389,
+      "sha256": "15bb891d1e0521a72e02d0e05da9acc8dcf1f6db8c467d34aa35a7e4e66c7f50",
+      "match": true
+    },
+    {
+      "file": "workspace-historical-backups.tar.gz.amvault",
+      "bytes": 279030466,
+      "sha256": "2d50dc12457b180beff435025a6b36ff8e8cfc3a29ae6afca99ef69c54784f7d",
+      "match": true
+    },
+    {
+      "file": "workspace-support-and-secrets.tar.gz.amvault",
+      "bytes": 1171027,
+      "sha256": "982901a607dbd6d1160610211bd2a390f6a0fa694ed52323541a022091860eb9",
+      "match": true
+    },
+    {
+      "file": "local-wordpress-complete-20260808.tar.amvault",
+      "bytes": 854896394,
+      "sha256": "47f9579bb7827accba97c9f20d3aa43e14733c8108c2cd0983a7ac47a9f973fe",
+      "match": true
+    },
+    {
+      "file": "production-wordpress-complete-20260808-125819.tar.amvault",
+      "bytes": 482912534,
+      "sha256": "8aed70b08f52d436e04645fe4020b6573bfdaa7f2932f6a2cc3c951cf6cd0194",
+      "match": true
+    }
+  ]
+}

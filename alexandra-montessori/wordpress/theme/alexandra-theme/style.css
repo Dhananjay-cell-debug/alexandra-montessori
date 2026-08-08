@@ -1,0 +1,13 @@
+/*
+Theme Name: Alexandra Montessori
+Theme URI: http://alexandra-montessori.local
+Author: Dhananjay
+Description: Custom WordPress theme for Alexandra Montessori React/Vite migration.
+Version: 1.0.0
+Text Domain: alexandra-montessori
+*/
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

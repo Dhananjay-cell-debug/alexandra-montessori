@@ -1,0 +1,36 @@
+# Local agent/editor state
+/.claude/
+/.superpowers/
+
+# Plaintext credentials are preserved only inside the encrypted backup vault.
+/_SECRETS-alexandra-backup/
+/adlexandra credentials
+/alexandra-montessori/.env.local
+/alexandra-montessori/.ssh_deploy_key
+
+# Reproducible dependencies, builds, logs, and temporary QA output.
+**/node_modules/
+/alexandra-montessori/dist/
+/alexandra-montessori/.vercel/
+/alexandra-montessori/tmp/
+/alexandra-montessori/test-results/
+/alexandra-montessori/.eslintcache
+*.log
+/output/
+/tmp/
+
+# Large original/historical material is preserved byte-for-byte in
+# backup-vault/2026-08-08 and omitted here to avoid storing it twice.
+/_drive-assets-20260702/
+/assets provided by them/
+/claude please review it/
+/_asset-thumbs-20260702/
+/_shots/
+/_video-samples-20260702/
+/_production-*/
+/_asset-contact-sheet-20260702-labeled.jpg
+/_asset-contact-sheet-20260702.jpg
+/_public-real-assets-labeled.jpg
+/tmp-menu-page1.png
+/alexandra colour code and fonts.jpeg
+

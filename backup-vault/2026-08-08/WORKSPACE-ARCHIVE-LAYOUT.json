@@ -1,0 +1,62 @@
+﻿{
+    "created":  "2026-08-08T07:54:19.7862081Z",
+    "root":  "C:\\DHANANJAY\\claude code\\CLIENT PROJECTS\\alexandra montesorri",
+    "app":  [
+                "alexandra-montessori"
+            ],
+    "originalAssets":  [
+                           "assets provided by them",
+                           "claude please review it",
+                           "wp visual edits section",
+                           "_asset-thumbs-20260702",
+                           "_drive-assets-20260702",
+                           "_shots",
+                           "_video-samples-20260702",
+                           "alexandra colour code and fonts.jpeg",
+                           "_asset-contact-sheet-20260702-labeled.jpg",
+                           "_asset-contact-sheet-20260702.jpg",
+                           "_public-real-assets-labeled.jpg",
+                           "tmp-menu-page1.png"
+                       ],
+    "historicalBackups":  [
+                              "_production-backup-alexandra-20260718-172124",
+                              "_production-delta-alexandra-20260727-171501",
+                              "_production-minimal-cache-safe-nursery-20260727-184732",
+                              "_production-minimal-cache-safe-nursery-20260727-184835-v2",
+                              "_production-release-alexandra-20260718-172124",
+                              "_production-release-alexandra-dist-20260727-130928",
+                              "_production-singlefile-nursery-20260727-182417"
+                          ],
+    "supportAndSecrets":  [
+                              ".claude",
+                              ".superpowers",
+                              "output",
+                              "scripts",
+                              "tmp",
+                              "_SECRETS-alexandra-backup",
+                              "adlexandra credentials",
+                              "ALEXANDRA-DOMAIN-TRANSFER-DNS-AND-OPERATIONS-GUIDE.md",
+                              "changes by them",
+                              "CHANGES-ROUND2-PLAN.md",
+                              "CLAUDE-VISUAL-BUILDER-RELENTLESS-PARITY-AUDIT.md",
+                              "FULL-SITE-CMS-IMPLEMENTATION-PLAN.md",
+                              "FULL-SITE-VISUAL-THEME-BUILDER-PLAN.md",
+                              "HANDOFF.md",
+                              "IMPLEMENTATION-PHASES.md",
+                              "package.json",
+                              "PHASE-0-VISUAL-BUILDER-EVIDENCE.md",
+                              "PHASE-1-VISUAL-BUILDER-DELIVERY.md",
+                              "PHASE-2-VISUAL-CONTROLS-HANDOFF.md",
+                              "prompt",
+                              "remote-live-index.tmp.html",
+                              "RESUME-HERE.md",
+                              "STATUS.md",
+                              "SUBMISSIONS-SCALE-ARCHITECTURE.md",
+                              "vite-4173.log",
+                              "vite-5175.err.log",
+                              "vite-5175.out.log",
+                              "wordpress section simple tutorial",
+                              "WORDPRESS-STATUS-AND-NEXT-TASKS.md",
+                              "_migrate-hostinger.sh"
+                          ]
+}

@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Alexandra Montessori — Menu & Nutrition Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+  :root{
+    --sage-light:#a3bc9a;
+    --sage-dark:#5e8773;
+    --olive:#7f8570;
+    --sand:#f5f1ef;
+    --ink:#2f3a34;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Poppins', Helvetica, Arial, sans-serif;
+    color:var(--ink);
+    background:#dcded9;
+    font-size:11pt;
+    line-height:1.55;
+  }
+  .page{margin:0 auto; background:#fff; box-shadow:0 4px 28px rgba(0,0,0,.18);}
+  @media print{ body{background:#fff;} .page{box-shadow:none; margin:0;} }
+  h1,h2,h3{
+    font-family:Helvetica, Arial, sans-serif;
+    color:var(--sage-dark);
+    margin:0 0 8px;
+    font-weight:700;
+  }
+  .page{
+    width:210mm;
+    min-height:296mm;
+    padding:16mm 18mm;
+    position:relative;
+    page-break-after:always;
+  }
+  .page:last-child{page-break-after:auto;}
+
+  .header{
+    display:flex; align-items:center; gap:14px;
+    border-bottom:3px solid var(--sage-light);
+    padding-bottom:14px; margin-bottom:20px;
+  }
+  .header img{width:56px; height:56px; object-fit:contain;}
+  .header h1{font-size:20pt; margin:0;}
+  .header .sub{font-size:10pt; color:var(--olive); margin-top:2px;}
+
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    font-size:9pt;
+    color:var(--olive);
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .section-title{font-size:19pt; margin-bottom:10px;}
+  .lede{font-size:11pt; max-width:92%;}
+
+  table{width:100%; border-collapse:collapse; margin-top:12px; font-size:10pt;}
+  th{
+    background:var(--sage-dark); color:#fff; text-align:left;
+    padding:8px 10px; font-family:Helvetica, Arial, sans-serif; font-weight:600;
+  }
+  td{padding:8px 10px; border-bottom:1px solid #e7e2dd; vertical-align:top;}
+  tr:nth-child(even) td{background:#faf8f6;}
+
+  .group-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:14px;}
+  .group-card{background:var(--sand); border-radius:12px; padding:10px 8px; text-align:center;}
+  .group-card .icon{font-size:20pt;}
+  .group-card p{font-size:8.3pt; margin:4px 0 0; color:var(--ink);}
+
+  .rule-list{list-style:none; padding:0; margin:14px 0 0;}
+  .rule-list li{margin-bottom:8px; padding-left:20px; position:relative; font-size:10pt;}
+  .rule-list li::before{content:"✓"; position:absolute; left:0; color:var(--sage-dark); font-weight:700;}
+
+  .note-box{
+    background:var(--sand); border-left:4px solid var(--sage-light);
+    border-radius:10px; padding:12px 16px; margin-top:14px; font-size:9.5pt; font-style:italic;
+  }
+
+  .allergen-box{
+    background:#fbf6ee; border:1px solid #e9dcc0; border-radius:12px;
+    padding:14px 18px; margin-top:14px; font-size:10pt;
+  }
+
+  .footer-strip{
+    position:absolute; bottom:10mm; left:18mm; right:18mm;
+    display:flex; justify-content:space-between; font-size:8pt; color:var(--olive);
+    border-top:1px solid #e7e2dd; padding-top:6px;
+  }
+
+  .cite{font-size:8pt; color:var(--olive); margin-top:16px;}
+
+  .rating{
+    display:inline-block; background:var(--sage-light); color:#fff; border-radius:999px;
+    padding:3px 10px; font-size:8.5pt; font-weight:600; margin-right:6px;
+  }
+  .rating.pending{background:var(--olive);}
+
+  @media print{
+    .page{padding:16mm 18mm;}
+    @page{ size:A4; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- PAGE 1 -->
+  <section class="page">
+    <div class="header">
+      <img src="assets/logo-badge.webp" alt="Alexandra Montessori logo" />
+      <div>
+        <h1>Menu &amp; Nutrition Guide</h1>
+        <div class="sub">Hounslow · Heston · Hammersmith</div>
+      </div>
+    </div>
+
+    <div class="eyebrow">Our approach to food</div>
+    <h2 class="section-title">Freshly prepared, shared together</h2>
+    <p class="lede">Nutritious, freshly prepared meals are cooked with care each day and balanced for growing children. Mealtimes are shared family-style — a calm, social part of the day that builds independence and good habits. We cater warmly for allergies and individual dietary needs, working closely with every family so each child is happy, healthy and well-nourished throughout their day with us.</p>
+    <p class="lede" style="margin-top:10px;">At Hammersmith, meals are supported through calm, social mealtimes and balanced snacks, with the same careful attention to allergies and dietary needs.</p>
+
+    <div class="eyebrow" style="margin-top:26px;">Meal &amp; snack times</div>
+    <h2 class="section-title">The rhythm of the day</h2>
+    <table>
+      <tr><th>Time</th><th>Meal</th></tr>
+      <tr><td>~08:30</td><td>Breakfast</td></tr>
+      <tr><td>10:00</td><td>Morning snack</td></tr>
+      <tr><td>12:15</td><td>Lunch</td></tr>
+      <tr><td>14:00</td><td>Afternoon snack</td></tr>
+      <tr><td>15:30</td><td>Tea</td></tr>
+      <tr><td>17:00</td><td>Early-evening snack</td></tr>
+    </table>
+    <div class="footer-strip"><span>Alexandra Montessori — Menu &amp; Nutrition Guide</span><span>info@alexandramontessori.co.uk</span></div>
+  </section>
+
+  <!-- PAGE 2 -->
+  <section class="page">
+    <div class="eyebrow">How we plan a balanced plate</div>
+    <h2 class="section-title">Guided by official early-years nutrition standards</h2>
+    <p class="lede">Our menus are planned in line with the UK Government's <b>"Eat Better, Start Better"</b> voluntary food and drink guidance for early years settings (Department for Education, gov.uk). In practice, this means every meal draws from the five food groups:</p>
+
+    <div class="group-grid">
+      <div class="group-card"><div class="icon">🥦</div><p>Fruit &amp; vegetables</p></div>
+      <div class="group-card"><div class="icon">🍞</div><p>Starchy carbohydrates</p></div>
+      <div class="group-card"><div class="icon">🍗</div><p>Protein</p></div>
+      <div class="group-card"><div class="icon">🧀</div><p>Dairy &amp; alternatives</p></div>
+      <div class="group-card"><div class="icon">🫒</div><p>Healthy oils, used sparingly</p></div>
+    </div>
+
+    <ul class="rule-list">
+      <li>Fresh drinking water available at all times</li>
+      <li>Milk or water offered as the only drinks with meals and snacks</li>
+      <li>No added sugar or salt, and minimal processed food</li>
+      <li>Portions and menus adapted by age, appetite and stage of weaning</li>
+      <li>Cultural, religious and personal dietary preferences respected and planned for</li>
+    </ul>
+
+    <p class="cite">Source: "Eat Better, Start Better" early years food &amp; drink guidance, Department for Education / gov.uk.</p>
+    <div class="footer-strip"><span>Alexandra Montessori — Menu &amp; Nutrition Guide</span><span>How we plan a balanced plate</span></div>
+  </section>
+
+  <!-- PAGE 3 -->
+  <section class="page">
+    <div class="eyebrow">Illustrative sample week</div>
+    <h2 class="section-title">The kind of meals your child will enjoy</h2>
+    <table>
+      <tr><th></th><th>Breakfast</th><th>Lunch</th><th>Tea</th></tr>
+      <tr><td>Monday</td><td>Porridge with fruit</td><td>Chicken &amp; vegetable casserole, rice</td><td>Wholemeal toast, cheese, cucumber</td></tr>
+      <tr><td>Tuesday</td><td>Wholegrain cereal, milk</td><td>Vegetable pasta bake, side salad</td><td>Hummus, pitta, carrot sticks</td></tr>
+      <tr><td>Wednesday</td><td>Toast, banana</td><td>Fish pie, seasonal vegetables</td><td>Fruit yoghurt, oatcakes</td></tr>
+      <tr><td>Thursday</td><td>Fruit &amp; yoghurt</td><td>Lentil &amp; vegetable curry, rice</td><td>Cheese sandwiches, cherry tomatoes</td></tr>
+      <tr><td>Friday</td><td>Toast, egg</td><td>Roast chicken, potatoes, vegetables</td><td>Beans on toast</td></tr>
+    </table>
+    <p class="lede" style="margin-top:10px; font-size:9.5pt;">Snacks each day rotate through fresh fruit, vegetable sticks, breadsticks, rice cakes and similar wholesome options.</p>
+
+    <div class="note-box">This is a sample menu showing the kind of balanced, varied meals we serve — not a fixed weekly cycle. Our actual menu rotates seasonally; ask your room leader or nursery manager for the current week's exact menu, which is also displayed in nursery.</div>
+    <div class="footer-strip"><span>Alexandra Montessori — Menu &amp; Nutrition Guide</span><span>Illustrative sample week</span></div>
+  </section>
+
+  <!-- PAGE 4 -->
+  <section class="page">
+    <div class="eyebrow">Allergen &amp; dietary care</div>
+    <h2 class="section-title">Keeping every child safe at mealtimes</h2>
+    <div class="allergen-box">We take allergies seriously and follow current UK food-labelling law, including <b>"Natasha's Law"</b>, which covers the 14 major allergens. Please tell us about any allergy, intolerance or dietary requirement — including cultural or religious preferences — as part of registration, and we will plan your child's meals accordingly with the room team and kitchen.</div>
+    <p class="cite">Source: Food Standards Agency (food.gov.uk) — allergen labelling guidance for schools, colleges and nurseries.</p>
+
+    <div class="eyebrow" style="margin-top:26px;">Food hygiene ratings</div>
+    <h2 class="section-title">Independently rated by the local authority</h2>
+    <table>
+      <tr><th>Nursery</th><th>Rating</th><th>Rated</th><th>Authority</th></tr>
+      <tr><td>Hounslow</td><td><span class="rating">4</span></td><td>6 October 2025</td><td>London Borough of Hounslow</td></tr>
+      <tr><td>Heston</td><td><span class="rating">5</span></td><td>20 January 2025</td><td>London Borough of Hounslow</td></tr>
+      <tr><td>Hammersmith</td><td><span class="rating pending">pending listing</span></td><td>—</td><td>London Borough of Hammersmith &amp; Fulham</td></tr>
+    </table>
+    <div class="footer-strip"><span>Alexandra Montessori — Menu &amp; Nutrition Guide</span><span>Food hygiene ratings</span></div>
+  </section>
+
+</body>
+</html>

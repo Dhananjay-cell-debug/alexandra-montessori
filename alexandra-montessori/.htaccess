@@ -1,0 +1,40 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType image/webp "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType video/mp4 "access plus 1 month"
+  ExpiresByType video/webm "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType video/webm .webm
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(webp|png|jpe?g|svg|mp4|webm)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  Header set X-Content-Type-Options "nosniff"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json image/svg+xml
+</IfModule>

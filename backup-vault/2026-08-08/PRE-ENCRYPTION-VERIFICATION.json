@@ -1,0 +1,80 @@
+﻿{
+    "verifiedUtc":  "2026-08-08T07:59:14.0043131Z",
+    "archives":  [
+                     {
+                         "Name":  "workspace-app",
+                         "ArchiveReadable":  true,
+                         "Bytes":  921000662
+                     },
+                     {
+                         "Name":  "workspace-original-assets",
+                         "ArchiveReadable":  true,
+                         "Bytes":  1135437127
+                     },
+                     {
+                         "Name":  "workspace-historical-backups",
+                         "ArchiveReadable":  true,
+                         "Bytes":  279030202
+                     },
+                     {
+                         "Name":  "workspace-support-and-secrets",
+                         "ArchiveReadable":  true,
+                         "Bytes":  1170764
+                     },
+                     {
+                         "Name":  "local-wordpress-files",
+                         "ArchiveReadable":  true,
+                         "Bytes":  854194274
+                     },
+                     {
+                         "Name":  "local-complete-wrapper",
+                         "ArchiveReadable":  true,
+                         "Bytes":  854896128
+                     },
+                     {
+                         "Name":  "production-complete-wrapper",
+                         "ArchiveReadable":  true,
+                         "Bytes":  482912256
+                     }
+                 ],
+    "productionChecksums":  [
+                                {
+                                    "File":  "database.sql.gz",
+                                    "Match":  true
+                                },
+                                {
+                                    "File":  "wordpress-files.tar.gz",
+                                    "Match":  true
+                                },
+                                {
+                                    "File":  "private-uploads.tar.gz",
+                                    "Match":  true
+                                },
+                                {
+                                    "File":  "server-state.txt",
+                                    "Match":  true
+                                },
+                                {
+                                    "File":  "plugins.csv",
+                                    "Match":  true
+                                },
+                                {
+                                    "File":  "themes.csv",
+                                    "Match":  true
+                                }
+                            ],
+    "localChecksums":  [
+                           {
+                               "File":  "database.sql",
+                               "Match":  true
+                           },
+                           {
+                               "File":  "local-wordpress-files.tar.gz",
+                               "Match":  true
+                           },
+                           {
+                               "File":  "local-state.json",
+                               "Match":  true
+                           }
+                       ]
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Alexandra Montessori — authentic Montessori childcare in London for children aged 18 months to 5 years. Safe, nurturing nurseries in Hammersmith, Heston and Hounslow."
+    />
+    <meta name="theme-color" content="#5e8773" />
+    <link rel="canonical" href="https://alexandramontessori.co.uk/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Alexandra Montessori" />
+    <meta property="og:title" content="Alexandra Montessori — Quality Montessori Childcare in London" />
+    <meta
+      property="og:description"
+      content="A family-owned Montessori community for children aged 18 months to 5 years, with three welcoming nurseries in Hammersmith, Heston and Hounslow."
+    />
+    <meta property="og:image" content="https://alexandramontessori.co.uk/assets/photos/activity-1.webp" />
+    <meta property="og:url" content="https://alexandramontessori.co.uk/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      (() => {
+        const path = window.location.pathname;
+        const hero =
+          path.includes('/hammersmith') ? '/assets/photos/nature-discovery.webp'
+          : path.includes('/heston') ? '/assets/photos/classroom-wide-2.webp'
+          : path.includes('/hounslow') ? '/assets/photos/portrait-1.webp'
+          : '/assets/photos/activity-1.webp';
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.type = 'image/webp';
+        link.href = hero;
+        link.fetchPriority = 'high';
+        document.head.appendChild(link);
+      })();
+    </script>
+    <title>Alexandra Montessori — Quality Montessori Childcare in London</title>
+    <script type="module" crossorigin src="/assets/index-BTML2_XM.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DGdTp5RL.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

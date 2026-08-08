@@ -1,0 +1,176 @@
+import { Link } from 'react-router-dom';
+import { Quote } from 'lucide-react';
+import Reveal from '../components/Reveal';
+import Icon from '../components/Icon';
+import Img from '../components/Img';
+import Seo from '../components/Seo';
+import { asset } from '../lib/asset';
+import { brand, homeBlocks, testimonials, accreditations } from '../data/site';
+
+// Small blue line icon shown under each circular feature link (MRN row).
+const blockIcons = ['Trees', 'GraduationCap', 'CalendarHeart'];
+
+// White three-benefit row — MRN's short statements, Alexandra-adapted.
+const benefits = [
+  { icon: 'HandHeart', text: 'Rich experiences in a secure and nurturing environment' },
+  { icon: 'Sprout', text: 'Montessori child-centred curriculum' },
+  { icon: 'Users', text: 'Highly skilled team who are devoted and passionate' },
+];
+
+/* ----------------------------------------------------- Hero video strip */
+function Hero() {
+  return (
+    <section className="relative h-[380px] overflow-hidden sm:h-[460px] lg:h-[540px]">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        poster={asset('/assets/videos/children-wooden-toys-poster.webp')}
+        className="absolute inset-0 h-full w-full object-cover"
+        aria-label="Children learning and playing at Alexandra Montessori"
+      >
+        <source src={asset('/assets/videos/children-wooden-toys.mp4')} type="video/mp4" />
+      </video>
+      {/* Soft green wash so the motto stays legible over the footage */}
+      <div className="hero-dither absolute inset-0 opacity-70" />
+      <div className="absolute inset-0 bg-sage-900/25" />
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+        <p className="font-heading text-4xl font-medium italic text-white drop-shadow-[0_3px_14px_rgba(0,0,0,0.5)] sm:text-5xl lg:text-6xl">
+          {brand.motto}
+        </p>
+        <p className="mt-3 font-body text-xs font-medium uppercase tracking-[0.28em] text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.55)] sm:mt-4 sm:text-sm">
+          {brand.tagline}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------- Peach three-column circular feature band */
+function FeatureLinks() {
+  return (
+    <section className="bg-sand py-12 sm:py-14">
+      <div className="container-wide grid gap-8 sm:grid-cols-3">
+        {homeBlocks.map((b, i) => (
+          <Reveal key={b.eyebrow} delay={i * 120} className="flex flex-col items-center text-center">
+            <h2 className="font-heading text-2xl font-medium text-sage-800">{b.eyebrow}</h2>
+            <Link to={b.to} className="group mt-4 block">
+              <span className="hexagon mx-auto block aspect-[1.1547/1] w-52 overflow-hidden bg-sage-50 sm:w-56">
+                <Img
+                  src={b.image}
+                  alt={b.eyebrow}
+                  rounded="rounded-none"
+                  className="h-full w-full transition-transform duration-700 group-hover:scale-110"
+                />
+              </span>
+            </Link>
+            <Link
+              to={b.to}
+              className="mt-4 font-body text-[1.05rem] font-medium text-sage-700 underline-offset-4 hover:underline"
+            >
+              {b.cta}
+            </Link>
+            <Icon name={blockIcons[i]} className="mt-2.5 h-8 w-8 text-sage-700" />
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------- White three-benefit icon row */
+function Benefits() {
+  return (
+    <section className="bg-white py-12 sm:py-16">
+      <div className="container-wide grid gap-8 sm:grid-cols-3 sm:gap-10">
+        {benefits.map((b, i) => (
+          <Reveal key={b.text} delay={i * 100} className="flex flex-col items-center text-center">
+            <Icon name={b.icon} className="h-14 w-14 text-sage-700" />
+            <p className="mt-4 max-w-[15rem] font-body text-lg font-medium leading-snug text-sage-800">
+              {b.text}
+            </p>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------- Testimonials over a full-width photo background */
+function Testimonials() {
+  return (
+    <section className="relative overflow-hidden py-16 sm:py-24">
+      <Img
+        src="/assets/photos/classroom-wide-3.webp"
+        alt=""
+        rounded="rounded-none"
+        className="absolute inset-0 h-full w-full"
+        position="center 40%"
+      />
+      <div className="absolute inset-0 bg-sage-900/82" />
+      <div className="container-wide relative">
+        <h2 className="text-center font-heading text-4xl font-medium text-white sm:text-5xl">
+          What Parents Say
+        </h2>
+        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {testimonials.slice(0, 3).map((t, i) => (
+            <Reveal
+              key={i}
+              delay={i * 130}
+              className="flex h-full flex-col rounded-4xl bg-sand/95 p-8 text-left shadow-card sm:p-9"
+            >
+              <Quote className="h-9 w-9 shrink-0 text-sage-400" strokeWidth={1.6} />
+              <h3 className="mt-5 font-heading text-xl font-medium text-sage-800 sm:text-2xl">
+                {t.title}
+              </h3>
+              <p className="mt-4 flex-1 text-pretty text-[0.95rem] leading-relaxed text-ink/80">
+                {t.quote}
+              </p>
+              <p className="mt-6 border-t border-sage-800/15 pt-4 font-body text-sm font-medium text-sage-800">
+                {t.name}
+                <span className="font-normal text-ink/75"> · {t.location}</span>
+              </p>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------ Trust / accreditation */
+function Trust() {
+  return (
+    <section className="bg-white py-12 sm:py-16">
+      <div className="container-wide">
+        <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
+          {accreditations.map((b) => (
+            <div key={b} className="flex items-center gap-2.5 text-sage-800">
+              <Icon name="ShieldCheck" className="h-7 w-7 text-sage-700" />
+              <span className="font-body text-sm font-medium uppercase tracking-wide">{b}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function Home() {
+  return (
+    <>
+      <Seo
+        description="Alexandra Montessori is a family-owned Montessori nursery for children aged 18 months to 5 years, with three welcoming settings in Hammersmith, Heston and Hounslow."
+        path="/"
+        image="/assets/photos/activity-1.webp"
+      />
+      <Hero />
+      <FeatureLinks />
+      <Benefits />
+      <Testimonials />
+      <Trust />
+    </>
+  );
+}

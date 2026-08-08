@@ -1,0 +1,45 @@
+- Jobs: public-facing. If you add or edit a job     
+    here, it shows on the site’s Careers > Current    
+    Vacancies page at /careers/vacancies. If someone  
+    clicks Apply now, they either go to an external   
+    apply link or to Alexandra’s own apply form.      
+                                                      
+  - Applications: private inbox only. When a candidate
+    submits the careers form with a CV, it lands here.    This does not show publicly on the site.          
+                                                      
+  - Enquiries: private inbox only. Contact form       
+    submissions and Book a visit submissions land     
+    here. Parents do not see this section.            
+                                                      
+  - Availability Requests: private inbox only. The    
+    Check availability form sends submissions here.   
+                                                      
+  - Events: public-facing. Add an event here and it   
+    appears on /events.                               
+                                                      
+  - Testimonials: public-facing. These feed the What  
+    Parents Say sections, mainly on the homepage and  
+    nursery pages.                                    
+                                                      
+  - Nurseries: public-facing and important. Editing a 
+    nursery affects multiple places: /nurseries, that 
+    nursery’s own page like /nurseries/heston, branch 
+    contact pages like /contact/heston, and shared    
+    branch info such as contact details, fee-sheet    
+    links, Ofsted/Food Hygiene data.                  
+                                                      
+  - Site Settings: global details. This is for overall    phone/email/hours and some shared brand-level     
+    info. Some of these fields are used directly on   
+    the site; some are partly wired and not shown     
+    everywhere yet.                                   
+                                                      
+  - Media: file library. Uploaded images, PDFs, and CV    files live here.                                  
+                                                      
+  - Posts: currently not the main way to change the   
+    public Alexandra site. The current blog/resources 
+    page is not reading directly from normal WordPress    posts.                                            
+                                                      
+  - Pages: also not the real editor for the public    
+    Alexandra pages. The visible pages are built in   
+    React, not in normal WordPress page content.      
+                                                  

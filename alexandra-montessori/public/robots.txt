@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://alexandramontessori.co.uk/sitemap.xml

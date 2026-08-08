@@ -1,0 +1,296 @@
+Alexandra Montessori Website — Required Changes
+1. Remove the Prospectus Button
+
+Remove the “Prospectus” button from the website wherever it currently appears.
+
+2. Fix the Footer Email Link
+
+The footer email address:
+
+info@alexandramontessori.co.uk
+
+currently opens Outlook as a general page.
+
+Update it so that clicking the email address opens the visitor’s default email application with:
+
+Alexandra’s email address automatically added in the To field.
+A new email ready to compose.
+
+Use a proper mailto: link.
+
+3. Make the Cookie Consent Functional
+
+The cookie consent banner currently provides options such as:
+
+Cookie Settings
+Reject Optional
+Accept All
+
+These options should perform actual functions instead of being decorative.
+
+Required behaviour:
+
+Accept All: Enable all permitted cookies, including analytics.
+Reject Optional: Disable non-essential cookies.
+Cookie Settings: Allow users to choose which categories of cookies they want to allow.
+Save the user’s selected preference so the banner does not appear repeatedly.
+Do not load optional tracking scripts until the user provides consent.
+4. Make Phone Numbers Clickable
+
+Every phone number displayed on the website should be clickable.
+
+On mobile devices, clicking a number should immediately open the phone dialler with the selected number entered.
+
+Use proper tel: links across the website.
+
+5. Add a Downloadable Menu
+
+Add an option for visitors to download the school/menu document once the final file is provided by the client.
+
+The button may be labelled:
+
+Download Menu
+
+The menu should open or download as a PDF file.
+
+Form Validation Improvements
+6. Improve Email Validation Across All Forms
+
+Currently, users can enter random or invalid email addresses into the website forms.
+
+Apply email validation to every form on the website.
+
+Required behaviour:
+
+Reject incorrectly formatted email addresses.
+Remove unnecessary spaces before or after the email.
+Display a clear error message for invalid email formats.
+Where genuine email ownership must be confirmed, send an email verification link or one-time code.
+Do not treat a submission as verified until the user completes the verification.
+
+Suggested error message:
+
+Please enter a valid email address.
+
+Important: A browser cannot reliably confirm whether every email inbox actually exists. Email-link or OTP verification should be used where ownership confirmation is required.
+
+7. Improve Phone Number Fields Across All Forms
+
+The current phone fields allow users to:
+
+Enter letters.
+Enter more digits than permitted.
+Submit a number without selecting a country code.
+Enter an unverified or invalid number.
+
+Update every phone-number field with the following:
+
+Add a country-code selector.
+Allow numbers only.
+Prevent letters and unsupported special characters.
+Apply the correct minimum and maximum length according to the selected country.
+Format the number clearly while the user types.
+Display an error for incomplete or invalid numbers.
+Where verification is required, send an OTP to verify ownership of the phone number.
+
+Suggested error message:
+
+Please enter a valid phone number.
+
+Visit Booking and Availability
+8. Prevent Past Dates in the “Book a Visit” Calendly Form
+
+The Preferred Visit Date field currently allows users to select dates from the past.
+
+Update the booking logic so that:
+
+Past dates cannot be selected.
+Unavailable dates cannot be selected.
+The earliest available visit date should be at least two days after the current date — T+2.
+Available dates and time slots should be clearly displayed.
+The same rule should work automatically as the date changes.
+
+Example:
+
+If today is 16 July, the earliest selectable date should be 18 July.
+
+9. Fix the Facebook Social Media Link
+
+The social media icons should redirect visitors directly to Alexandra Montessori’s official social media profiles.
+
+The Facebook icon currently redirects users through a login flow instead of correctly opening the intended public page.
+
+Required changes:
+
+Confirm that the Facebook icon uses the correct public Facebook page URL.
+Open the profile in a new browser tab.
+Apply the same behaviour consistently to all social media icons.
+Ensure each icon opens the correct Alexandra Montessori profile.
+
+Facebook may still request login depending on Facebook’s own platform rules, but the website link must point directly to the correct public profile.
+
+Careers and Vacancies
+10. Fix Vacancy Card Description Overflow
+
+The short description entered through WordPress currently has no visible limit, causing text to overflow outside the vacancy card.
+
+Update the vacancy cards so that:
+
+Only a short preview of the description is displayed.
+The preview should be limited by characters or approximately two to three lines.
+Extra text should be hidden without breaking the card design.
+Add a “Read More” or “View Role” link.
+Clicking it should open the complete vacancy details page.
+11. Display Complete Vacancy Information
+
+Information entered through the WordPress admin panel is not fully appearing on the live vacancy page.
+
+Each vacancy details page should display all relevant information entered by the administrator, including:
+
+Job title
+Location
+Employment type
+Job summary
+Complete job description
+Responsibilities
+Required skills
+Qualifications
+Experience requirements
+Benefits
+Any other vacancy-specific information
+
+The vacancy details page should contain an Apply Now button or application form below the complete job information.
+
+The job title should automatically be attached to the application so the team knows which role the applicant selected.
+
+The application form must also use the improved email and phone-number validation mentioned earlier.
+
+12. Add “Other” to the Qualification Field
+
+In the Apply for This Role form, add an option called:
+
+Other
+
+When the applicant selects it, display an additional text field:
+
+Please specify your qualification
+
+The additional field should become mandatory when “Other” is selected.
+
+13. Add “Other” to the Position Field
+
+The Careers application form currently provides only a limited list of job positions.
+
+Add an option called:
+
+Other
+
+When selected, display a new field:
+
+What position would you like to apply for?
+
+The applicant should be able to manually enter their preferred role.
+
+This application should be stored or delivered to the Alexandra team even when no matching vacancy is currently available, allowing the team to contact the applicant if a suitable opportunity becomes available.
+
+Events Section
+14. Separate Past and Upcoming Events
+
+Organise the Events page into two clear sections:
+
+Past Events
+
+Display events that have already taken place.
+
+Upcoming Events
+
+Display events scheduled for future dates.
+
+For each section:
+
+Initially display six event cards.
+Use a three-column by two-row layout on desktop.
+Adapt the layout responsively for tablets and mobile devices.
+Add a View More button when more than six events are available.
+Clicking View More should reveal additional events.
+After expanding, display a View Less button to collapse the section again.
+
+Events should automatically be categorised as past or upcoming based on their date and time.
+
+15. Improve Event Cards and Event Detail Pages
+
+Each event card should display:
+
+Event thumbnail
+Event title
+Date
+Time
+Location
+Short description
+View Details button
+
+The short description should be limited so that it does not break the card layout.
+
+Replace the current Book a Place button on event cards with:
+
+View Details
+
+Clicking View Details should open a dedicated event page containing:
+
+Full-size event image
+Event title
+Date
+Start and end time
+Location
+Short description
+Complete event description
+Booking information
+Book a Place button
+
+The Book a Place button on the event details page should redirect the visitor to the relevant booking or contact form.
+
+Where possible, the selected event title should automatically be included in the form submission.
+
+Check Availability Form
+16. Improve the Check Availability Form
+
+The Desired Start Date currently allows users to select dates from the past.
+
+Required changes:
+
+Disable all past dates.
+Permit future dates only.
+Add a clear start-date selector.
+Add an end-date selector when the requested childcare period requires one.
+Prevent the end date from being earlier than the start date.
+
+Replace the vague “Day or Session Needed” field with clearer interactive options.
+
+Recommended fields:
+
+Required start date
+Required end date, where applicable
+Required days of the week
+Preferred session:
+Morning
+Afternoon
+Full Day
+Other
+Preferred start time
+Preferred end time
+Additional requirements
+
+The fields should dynamically appear based on the visitor’s selections.
+
+Blog Section
+17. Fix Cropped Blog Thumbnails
+
+Blog thumbnail images are currently being cropped incorrectly.
+
+Update the blog cards so that:
+
+The main subject of the image remains visible.
+Images maintain a consistent aspect ratio.
+Images do not appear stretched or distorted.
+The full image should be shown where practical.
+If consistent card dimensions require cropping, use controlled cropping and suitable image positioning instead of cutting off important content.

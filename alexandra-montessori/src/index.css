@@ -1,0 +1,792 @@
+/* Poppins is self-hosted so headings do not depend on a cross-origin CSS
+   request. Files are the Latin subset from Google Fonts (SIL OFL 1.1). */
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/poppins-latin-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/assets/fonts/poppins-latin-500.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/assets/fonts/poppins-latin-600.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/poppins-latin-700.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/assets/fonts/poppins-latin-800.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/assets/fonts/poppins-latin-500-italic.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Poppins";
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/assets/fonts/poppins-latin-600-italic.woff2") format("woff2");
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Phone fields often sit inside a second grid column. Container queries keep
+   the country name and number readable based on the field's actual width. */
+.am-phone-field {
+  container-type: inline-size;
+}
+
+/* Local Visual Builder Home controls. Custom properties are injected by the
+   WordPress option model; when the Local-only plugin is absent these
+   declarations become invalid and the approved Tailwind baseline remains. */
+.am-home-design-region {
+  background-color: var(--am-home-background) !important;
+  padding-block: var(--am-home-padding-y-mobile) !important;
+}
+
+.am-home-hero {
+  height: var(--am-home-height-mobile) !important;
+  padding-block: 0 !important;
+}
+
+.am-home-content {
+  max-width: var(--am-home-content-width-mobile) !important;
+}
+
+.am-home-grid {
+  gap: var(--am-home-gap-mobile) !important;
+}
+
+.am-home-feature-media {
+  width: var(--am-home-media-size-mobile) !important;
+}
+
+.am-home-benefit-copy {
+  font-size: var(--am-home-text-size-mobile) !important;
+}
+
+.am-home-about-media {
+  justify-self: center;
+  width: min(100%, var(--am-home-image-size-mobile)) !important;
+}
+
+.am-home-about-media img {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.am-home-hero-texture {
+  opacity: calc(var(--am-home-texture, 35) / 100) !important;
+}
+
+.am-home-hero-tint {
+  background-color: rgb(58 80 64 / calc(var(--am-home-tint, 14) * 1%)) !important;
+}
+
+.am-home-testimonial-overlay {
+  background-color: rgb(58 80 64 / calc(var(--am-home-overlay, 72) * 1%)) !important;
+}
+
+.am-home-trust-icon-wrap,
+.am-home-trust-icon {
+  height: var(--am-home-icon-size-mobile) !important;
+  width: var(--am-home-icon-size-mobile) !important;
+}
+
+/* Direct Home-canvas media editing. Movement and scale belong to the complete
+   visual frame (circle, hexagon, card or video), while object-position only
+   adjusts the photo crop inside that frame. */
+[data-am-vb-has-saved-transform="true"].am-vb-editable-media {
+  scale: var(--am-vb-saved-media-scale-mobile, 1);
+  translate:
+    var(--am-vb-saved-media-offset-x-mobile, 0)
+    var(--am-vb-saved-media-offset-y-mobile, 0);
+  transform-origin: center;
+}
+
+[data-am-vb-has-saved-media-position="true"].am-vb-editable-media img,
+video[data-am-vb-has-saved-media-position="true"].am-vb-editable-media {
+  object-position: var(--am-vb-saved-media-position-x, 50%) var(--am-vb-saved-media-position-y, 50%) !important;
+}
+
+html[data-am-vb-canvas-mode="edit"] .am-vb-editable-media {
+  scale: var(--am-media-scale-mobile, 1);
+  translate:
+    var(--am-media-offset-x-mobile, 0)
+    var(--am-media-offset-y-mobile, 0);
+  transform-origin: center;
+}
+
+html[data-am-vb-canvas-mode="edit"] .am-vb-editable-media img,
+html[data-am-vb-canvas-mode="edit"] video.am-vb-editable-media {
+  object-position: var(--am-media-position-x, 50%) var(--am-media-position-y, 50%) !important;
+}
+
+/* Every fixed Home text layer can be repositioned and scaled by the visual
+   builder without replacing the site's real markup or responsive layout. */
+[data-am-vb-has-saved-transform="true"]:not(.am-vb-editable-media):not([data-am-vb-custom-element]) {
+  box-sizing: border-box;
+  position: relative;
+  scale: var(--am-vb-saved-element-scale-mobile, 1);
+  transform-origin: center;
+  translate:
+    var(--am-vb-saved-element-offset-x-mobile, 0)
+    var(--am-vb-saved-element-offset-y-mobile, 0);
+}
+
+html[data-am-vb-canvas-mode="edit"] [data-am-vb-free-move="true"]:not(.am-vb-editable-media):not([data-am-vb-custom-element]) {
+  box-sizing: border-box;
+  position: relative;
+  scale: var(--am-element-scale-mobile, 1);
+  transform-origin: center;
+  translate:
+    var(--am-element-offset-x-mobile, 0)
+    var(--am-element-offset-y-mobile, 0);
+}
+
+/* Text entered on the canvas keeps deliberate line breaks and cannot escape
+   a card when a client pastes a long URL, name, or unbroken word. */
+html[data-am-vb-canvas-mode="edit"] [data-am-vb-edit-type="text"],
+html[data-am-vb-canvas-mode="edit"] [data-am-vb-edit-type="textarea"],
+[data-am-vb-has-value="true"][data-am-vb-edit-type="text"],
+[data-am-vb-has-value="true"][data-am-vb-edit-type="textarea"] {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.am-home-testimonial-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+[data-am-vb-frame-handle] {
+  display: none;
+}
+
+html[data-am-vb-canvas-mode="edit"] span[data-am-vb-free-move="true"],
+span[data-am-vb-has-saved-transform="true"],
+span[data-am-vb-has-value="true"] {
+  display: inline-block;
+}
+
+@media (min-width: 640px) {
+	[data-am-vb-has-saved-transform="true"]:not(.am-vb-editable-media):not([data-am-vb-custom-element]) {
+		scale: var(--am-vb-saved-element-scale-tablet, 1);
+		translate:
+			var(--am-vb-saved-element-offset-x-tablet, 0)
+			var(--am-vb-saved-element-offset-y-tablet, 0);
+	}
+
+	html[data-am-vb-canvas-mode="edit"] [data-am-vb-free-move="true"]:not(.am-vb-editable-media):not([data-am-vb-custom-element]) {
+		scale: var(--am-element-scale-tablet, 1);
+		translate:
+			var(--am-element-offset-x-tablet, 0)
+			var(--am-element-offset-y-tablet, 0);
+	}
+
+  [data-am-vb-has-saved-transform="true"].am-vb-editable-media {
+		scale: var(--am-vb-saved-media-scale-tablet, 1);
+		translate:
+			var(--am-vb-saved-media-offset-x-tablet, 0)
+			var(--am-vb-saved-media-offset-y-tablet, 0);
+	}
+
+  html[data-am-vb-canvas-mode="edit"] .am-vb-editable-media {
+    scale: var(--am-media-scale-tablet, 1);
+    translate:
+      var(--am-media-offset-x-tablet, 0)
+      var(--am-media-offset-y-tablet, 0);
+  }
+
+  .am-home-design-region {
+    padding-block: var(--am-home-padding-y-tablet) !important;
+  }
+
+  .am-home-hero {
+    height: var(--am-home-height-tablet) !important;
+    padding-block: 0 !important;
+  }
+
+  .am-home-content {
+    max-width: var(--am-home-content-width-tablet) !important;
+  }
+
+  .am-home-grid {
+    gap: var(--am-home-gap-tablet) !important;
+  }
+
+  .am-home-feature-media {
+    width: var(--am-home-media-size-tablet) !important;
+  }
+
+  .am-home-benefit-copy {
+    font-size: var(--am-home-text-size-tablet) !important;
+  }
+
+  .am-home-about-media {
+    width: min(100%, var(--am-home-image-size-tablet)) !important;
+  }
+
+  .am-home-trust-icon-wrap,
+  .am-home-trust-icon {
+    height: var(--am-home-icon-size-tablet) !important;
+    width: var(--am-home-icon-size-tablet) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+	[data-am-vb-has-saved-transform="true"]:not(.am-vb-editable-media):not([data-am-vb-custom-element]) {
+		scale: var(--am-vb-saved-element-scale-desktop, 1);
+		translate:
+			var(--am-vb-saved-element-offset-x-desktop, 0)
+			var(--am-vb-saved-element-offset-y-desktop, 0);
+	}
+
+	html[data-am-vb-canvas-mode="edit"] [data-am-vb-free-move="true"]:not(.am-vb-editable-media):not([data-am-vb-custom-element]) {
+		scale: var(--am-element-scale-desktop, 1);
+		translate:
+			var(--am-element-offset-x-desktop, 0)
+			var(--am-element-offset-y-desktop, 0);
+	}
+
+  [data-am-vb-has-saved-transform="true"].am-vb-editable-media {
+		scale: var(--am-vb-saved-media-scale-desktop, 1);
+		translate:
+			var(--am-vb-saved-media-offset-x-desktop, 0)
+			var(--am-vb-saved-media-offset-y-desktop, 0);
+	}
+
+  html[data-am-vb-canvas-mode="edit"] .am-vb-editable-media {
+    scale: var(--am-media-scale-desktop, 1);
+    translate:
+      var(--am-media-offset-x-desktop, 0)
+      var(--am-media-offset-y-desktop, 0);
+  }
+
+  .am-home-design-region {
+    padding-block: var(--am-home-padding-y-desktop) !important;
+  }
+
+  .am-home-hero {
+    height: var(--am-home-height-desktop) !important;
+    padding-block: 0 !important;
+  }
+
+  .am-home-content {
+    max-width: var(--am-home-content-width-desktop) !important;
+  }
+
+  .am-home-grid {
+    gap: var(--am-home-gap-desktop) !important;
+  }
+
+  .am-home-feature-media {
+    width: var(--am-home-media-size-desktop) !important;
+  }
+
+  .am-home-benefit-copy {
+    font-size: var(--am-home-text-size-desktop) !important;
+  }
+
+  .am-home-about-media {
+    width: min(100%, var(--am-home-image-size-desktop)) !important;
+  }
+
+  .am-home-trust-icon-wrap,
+  .am-home-trust-icon {
+    height: var(--am-home-icon-size-desktop) !important;
+    width: var(--am-home-icon-size-desktop) !important;
+  }
+}
+
+/* Flexible Home library. Extra collection items keep the approved card
+   language, while custom sections provide a bounded drag-and-resize canvas. */
+.am-home-variable-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.am-home-custom-section {
+  min-height: var(--am-custom-height-mobile, 520px);
+  overflow: hidden;
+  padding: 0 !important;
+  position: relative;
+}
+
+.am-home-custom-stage {
+  height: var(--am-custom-height-mobile, 520px);
+  margin: 0 auto;
+  max-width: 1440px;
+  position: relative;
+  width: 100%;
+}
+
+.am-home-custom-item {
+  box-sizing: border-box;
+  font-size: var(--am-custom-fontSize-mobile, 16px);
+  height: var(--am-custom-height-mobile, 100px);
+  left: var(--am-custom-x-mobile, 20px);
+  line-height: 1.25;
+  overflow: hidden;
+  position: absolute;
+  top: var(--am-custom-y-mobile, 20px);
+  width: var(--am-custom-width-mobile, 240px);
+}
+
+.am-home-custom-text {
+  align-items: center;
+  display: flex;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  white-space: pre-wrap;
+}
+
+.am-home-custom-button {
+  align-items: center;
+  display: inline-flex;
+  font-weight: 600;
+  justify-content: center;
+  padding: 0 20px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.am-home-custom-media {
+  align-items: center;
+  background: rgb(255 255 255 / 55%);
+  display: flex;
+  justify-content: center;
+}
+
+.am-home-custom-media > img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.am-home-custom-media.is-logo > img {
+  object-fit: contain;
+}
+
+.am-home-custom-placeholder {
+  align-items: center;
+  border: 2px dashed rgb(52 91 64 / 35%);
+  color: #345b40;
+  display: flex;
+  font-size: 14px;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.am-home-custom-shape.is-circle {
+  border-radius: 50% !important;
+}
+
+.am-home-custom-shape.is-pill {
+  border-radius: 999px !important;
+}
+
+.am-home-custom-shape.is-line {
+  height: 4px !important;
+}
+
+.am-home-custom-tabs {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px;
+}
+
+.am-home-custom-tabs > span {
+  background: #fff;
+  border: 1px solid rgb(52 91 64 / 24%);
+  border-radius: 999px;
+  color: #345b40;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 9px 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (min-width: 640px) {
+  .am-home-variable-grid {
+    grid-template-columns: repeat(var(--am-home-columns, 3), minmax(0, 1fr));
+  }
+
+  .am-home-custom-section,
+  .am-home-custom-stage {
+    min-height: var(--am-custom-height-tablet, 420px);
+    height: var(--am-custom-height-tablet, 420px);
+  }
+
+  .am-home-custom-item {
+    font-size: var(--am-custom-fontSize-tablet, var(--am-custom-fontSize-desktop, 16px));
+    height: var(--am-custom-height-tablet, var(--am-custom-height-desktop, 100px));
+    left: var(--am-custom-x-tablet, var(--am-custom-x-desktop, 40px));
+    top: var(--am-custom-y-tablet, var(--am-custom-y-desktop, 40px));
+    width: var(--am-custom-width-tablet, var(--am-custom-width-desktop, 360px));
+  }
+}
+
+@media (min-width: 1024px) {
+  .am-home-custom-section,
+  .am-home-custom-stage {
+    min-height: var(--am-custom-height-desktop, 420px);
+    height: var(--am-custom-height-desktop, 420px);
+  }
+
+  .am-home-custom-item {
+    font-size: var(--am-custom-fontSize-desktop, 16px);
+    height: var(--am-custom-height-desktop, 100px);
+    left: var(--am-custom-x-desktop, 40px);
+    top: var(--am-custom-y-desktop, 40px);
+    width: var(--am-custom-width-desktop, 360px);
+  }
+}
+
+.am-phone-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+@container (min-width: 32rem) {
+  .am-phone-controls {
+    grid-template-columns: minmax(12rem, 0.9fr) minmax(12rem, 1.1fr);
+  }
+}
+
+@layer base {
+  :root {
+    --cream: #f5f1ef;
+    --sand: #e9f1e6;
+    --sage: #a3bc9a;
+    --sage-dark: #a3bc9a;
+    --sage-light: #a3bc9a;
+    --olive: #8f9b84;
+    --ink: #36463d;
+    --ink-muted: #5f6f64;
+    --ink-soft: #6d7d72;
+    --nav-h: 96px;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply overflow-x-hidden bg-cream font-body text-ink antialiased;
+  }
+
+  p,
+  li,
+  label,
+  input,
+  textarea,
+  select {
+    text-shadow: none;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    @apply font-heading;
+  }
+
+  ::selection {
+    background: var(--sage-dark);
+    color: #fff;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #e3ece0;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #a3bc9a;
+    border-radius: 999px;
+    border: 2px solid #e3ece0;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--sage);
+  }
+
+  /* Accessibility: skip-to-content link (MRN parity) */
+  .skip-link {
+    @apply sr-only;
+  }
+  .skip-link:focus {
+    @apply not-sr-only fixed left-4 top-4 z-[100] rounded bg-sage-800 px-4 py-2 text-sm font-medium text-white;
+  }
+}
+
+@layer components {
+  .container-wide {
+    @apply mx-auto w-full max-w-content px-5 sm:px-8;
+  }
+
+  /* Buttons - MRN keeps these simple and near-rectangular (Raleway, light radius) */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded px-6 py-3 text-sm font-semibold font-body transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
+  .btn-primary {
+    @apply btn bg-sage-500 text-white hover:bg-sage-400;
+  }
+  .btn-outline {
+    @apply btn border border-sage-300 bg-transparent text-ink hover:bg-sage-100 hover:text-ink;
+  }
+  .btn-cream {
+    @apply btn bg-white text-ink hover:bg-sage-50;
+  }
+  .btn-ghost {
+    @apply btn text-ink hover:bg-sage-100;
+  }
+  .btn-accent {
+    @apply btn bg-sage-500 text-white hover:bg-sage-400;
+  }
+
+  /* Glass surface (legacy) */
+  .glass {
+    @apply border border-white/40 bg-white/70 backdrop-blur-md;
+  }
+
+  /* Eyebrow / kicker label */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-sage-600;
+  }
+
+  /* Card - flat MRN-style block (subtle border, gentle radius, minimal shadow) */
+  .card {
+    @apply rounded-4xl border border-sage-100 bg-white shadow-soft transition-all duration-300;
+  }
+  .card-hover {
+    @apply hover:-translate-y-0.5 hover:border-sage-200 hover:shadow-card;
+  }
+
+  /* Rectangular location/section label using the navbar green. */
+  .mrn-label {
+    @apply inline-block bg-sage-500 px-5 py-2 font-body text-sm font-medium uppercase tracking-wide text-white;
+  }
+
+  /* Circular icon badge - duotone laurel disc that frames the icon. */
+  .icon-badge {
+    @apply flex items-center justify-center rounded-full bg-sage-50 text-sage-600 ring-1 ring-inset ring-sage-200/70;
+  }
+  .icon-badge-accent {
+    @apply flex items-center justify-center rounded-full bg-accent/15 text-accent-dark ring-1 ring-inset ring-accent/25;
+  }
+
+  /* Section heading underline flourish (MRN-style centred heading) */
+  .heading-flourish {
+    @apply relative inline-block;
+  }
+  .heading-flourish::after {
+    content: "";
+    @apply absolute -bottom-3 left-1/2 h-[3px] w-16 -translate-x-1/2 rounded-full bg-sage-400;
+  }
+
+  /* Decorative dotted grid background */
+  .grid-bg {
+    background-image: radial-gradient(
+      rgba(43, 64, 53, 0.16) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+
+  /* Hero diagonal/dither overlay texture (deep laurel green) */
+  .hero-dither {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(43, 64, 53, 0.42) 0,
+      rgba(43, 64, 53, 0.42) 2px,
+      rgba(43, 64, 53, 0.12) 2px,
+      rgba(43, 64, 53, 0.12) 5px
+    );
+  }
+
+  /* Hexagon mask for the homepage feature images */
+  .hexagon {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  }
+
+  .blog-richtext {
+    @apply text-base leading-8 text-ink/90;
+  }
+  .blog-richtext > * + * {
+    @apply mt-5;
+  }
+  .blog-richtext h2 {
+    @apply mt-10 font-heading text-3xl font-medium leading-tight text-sage-800;
+  }
+  .blog-richtext h3 {
+    @apply mt-8 font-heading text-2xl font-medium leading-tight text-sage-800;
+  }
+  .blog-richtext p {
+    @apply text-base leading-8 text-ink/90;
+  }
+  .blog-richtext ul,
+  .blog-richtext ol {
+    @apply space-y-3 pl-5;
+  }
+  .blog-richtext ul {
+    @apply list-disc;
+  }
+  .blog-richtext ol {
+    @apply list-decimal;
+  }
+  .blog-richtext li {
+    @apply pl-1 text-base leading-8 text-ink/90;
+  }
+  .blog-richtext a {
+    @apply font-semibold text-sage-700 underline decoration-sage-500/60 underline-offset-4 transition-colors hover:text-sage-900;
+  }
+  .blog-richtext strong {
+    @apply font-semibold text-ink;
+  }
+  /* Images/embeds a client adds inside a Blog or Event body. Without these, WP
+     inserts them at raw full width with sharp corners - looks amateur. Constrain
+     the height, centre, round and lift them so any upload reads as intentional. */
+  .blog-richtext img {
+    @apply mx-auto my-8 block h-auto max-h-[34rem] w-auto max-w-full rounded-3xl shadow-card;
+  }
+  .blog-richtext figure {
+    @apply my-8;
+  }
+  .blog-richtext figure img {
+    @apply my-0;
+  }
+  .blog-richtext figcaption,
+  .blog-richtext .wp-caption-text {
+    @apply mt-3 text-center text-sm italic text-ink/70;
+  }
+  .blog-richtext iframe,
+  .blog-richtext video {
+    @apply my-8 aspect-video w-full rounded-3xl shadow-card;
+  }
+  .blog-richtext blockquote {
+    @apply my-8 rounded-r-2xl border-l-4 border-sage-300 bg-sage-50/70 py-3 pl-5 pr-4 text-lg italic leading-relaxed text-sage-800;
+  }
+  .blog-richtext hr {
+    @apply my-10 border-t border-sage-200;
+  }
+  .blog-richtext table {
+    @apply my-8 w-full border-collapse text-left text-sm;
+  }
+  .blog-richtext th,
+  .blog-richtext td {
+    @apply border border-sage-100 px-4 py-2.5;
+  }
+  .blog-richtext th {
+    @apply bg-sage-50 font-semibold text-sage-800;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Keep body copy crisp. Earlier pale-green opacity utilities made text feel hazy. */
+  .text-ink\/65,
+  .text-ink\/70 {
+    color: var(--ink-soft) !important;
+  }
+
+  .text-ink\/75,
+  .text-ink\/85,
+  .text-ink\/90 {
+    color: var(--ink-muted) !important;
+  }
+
+  .text-sage-700,
+  .text-sage-800,
+  .text-sage-900 {
+    color: var(--ink) !important;
+  }
+
+  /* Scroll reveal - default visible; JS arms hidden state only when needed. */
+  .reveal {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.reveal-ready {
+    opacity: 0;
+    transform: translateY(10px);
+    will-change: opacity, transform;
+  }
+  .reveal.reveal-ready.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    html {
+      scroll-behavior: auto;
+    }
+    .animate-float,
+    .animate-float-slow,
+    .animate-bounce-soft {
+      animation: none !important;
+    }
+  }
+}

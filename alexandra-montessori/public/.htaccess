@@ -1,0 +1,50 @@
+# Alexandra Montessori - Hostinger (Apache/LiteSpeed) config
+# SPA routing + HTTPS + security headers + compression + caching
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Same-origin application endpoint. Keep this before the SPA fallback so
+  # form POSTs do not get rewritten to index.html.
+  RewriteRule ^wp-json/am/v1/apply/?$ /api/apply.php [L,QSA]
+
+  # Serve real files/directories, route everything else to the React app.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+  <FilesMatch "\.(js|css|woff2?|webp|svg|png|jpg|jpeg|gif|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType application/javascript js mjs
+  AddType image/webp webp
+  AddType image/svg+xml svg
+</IfModule>
+
+ErrorDocument 404 /index.html

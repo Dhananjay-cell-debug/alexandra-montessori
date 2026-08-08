@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Alexandra Montessori — Prospectus</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+  :root{
+    --sage-light:#a3bc9a;
+    --sage-dark:#5e8773;
+    --olive:#7f8570;
+    --sand:#f5f1ef;
+    --ink:#2f3a34;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Poppins', Helvetica, Arial, sans-serif;
+    color:var(--ink);
+    background:#dcded9;
+    font-size:11.5pt;
+    line-height:1.55;
+  }
+  .page{margin:0 auto; background:#fff; box-shadow:0 4px 28px rgba(0,0,0,.18);}
+  @media print{ body{background:#fff;} .page{box-shadow:none; margin:0;} }
+  h1,h2,h3{
+    font-family:Helvetica, Arial, sans-serif;
+    color:var(--sage-dark);
+    margin:0 0 8px;
+    font-weight:700;
+  }
+  .page{
+    width:210mm;
+    min-height:296mm;
+    padding:16mm 18mm;
+    position:relative;
+    page-break-after:always;
+  }
+  .page:last-child{page-break-after:auto;}
+
+  /* ---------- Cover ---------- */
+  .cover{
+    background:linear-gradient(160deg, var(--sage-dark) 0%, var(--sage-light) 60%, var(--sand) 100%);
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:0;
+  }
+  .cover-inner{padding:22mm 18mm; display:flex; flex-direction:column; height:100%; justify-content:space-between;}
+  .cover img.logo{width:120px; height:120px; object-fit:contain; filter:drop-shadow(0 8px 20px rgba(0,0,0,.25));}
+  .cover h1{color:#fff; font-size:40pt; margin-top:26px; line-height:1.1;}
+  .cover .motto{font-size:15pt; font-style:italic; opacity:.95; margin-top:6px;}
+  .cover .tagline{font-size:13pt; margin-top:18px; max-width:80%;}
+  .cover .badges{margin-top:24px; display:flex; gap:10px; flex-wrap:wrap;}
+  .badge{
+    background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.5);
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:9.5pt;
+    letter-spacing:.03em;
+  }
+  .cover .locations{font-size:11pt; margin-top:auto; padding-top:20px; border-top:1px solid rgba(255,255,255,.35);}
+
+  /* ---------- Common section styling ---------- */
+  .eyebrow{
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    font-size:9pt;
+    color:var(--olive);
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .section-title{font-size:22pt; margin-bottom:14px;}
+  .lede{font-size:12pt; color:var(--ink); max-width:90%;}
+  .quote{
+    background:var(--sand);
+    border-left:4px solid var(--sage-light);
+    padding:14px 18px;
+    border-radius:10px;
+    font-style:italic;
+    margin-top:16px;
+    font-size:10.5pt;
+  }
+  ul.beliefs{list-style:none; padding:0; margin:18px 0 0;}
+  ul.beliefs li{margin-bottom:12px; padding-left:22px; position:relative;}
+  ul.beliefs li::before{
+    content:"";
+    position:absolute; left:0; top:6px;
+    width:9px; height:9px; border-radius:50%;
+    background:var(--sage-light);
+  }
+  ul.beliefs b{color:var(--sage-dark);}
+
+  table{width:100%; border-collapse:collapse; margin-top:14px; font-size:10pt;}
+  th{
+    background:var(--sage-dark); color:#fff; text-align:left;
+    padding:8px 10px; font-family:Helvetica, Arial, sans-serif; font-weight:600;
+  }
+  td{padding:8px 10px; border-bottom:1px solid #e7e2dd; vertical-align:top;}
+  tr:nth-child(even) td{background:#faf8f6;}
+
+  .curric-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px 18px; margin-top:14px;}
+  .curric-card{
+    background:var(--sand); border-radius:12px; padding:12px 14px;
+  }
+  .curric-card h4{margin:0 0 4px; font-size:11pt; color:var(--sage-dark); font-family:Helvetica,Arial,sans-serif;}
+  .curric-card p{margin:0; font-size:9.5pt;}
+
+  .safety-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin-top:14px;}
+  .safety-item{padding-left:20px; position:relative; font-size:10.5pt;}
+  .safety-item::before{content:"✓"; position:absolute; left:0; color:var(--sage-dark); font-weight:700;}
+
+  .fund-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;}
+  .fund-card{border:1px solid #e7e2dd; border-radius:12px; padding:12px 14px;}
+  .fund-card h4{margin:0 0 4px; color:var(--sage-dark); font-size:10.5pt; font-family:Helvetica,Arial,sans-serif;}
+  .fund-card p{margin:0; font-size:9.5pt;}
+
+  .steps{display:flex; gap:14px; margin-top:16px;}
+  .step{flex:1; text-align:center;}
+  .step-num{
+    width:34px; height:34px; border-radius:50%; background:var(--sage-light); color:#fff;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 8px; font-weight:700;
+    font-family:Helvetica,Arial,sans-serif;
+  }
+  .step p{font-size:9.5pt; margin:0;}
+
+  .nursery-card{
+    border:1px solid #e7e2dd; border-radius:14px; padding:16px 18px; margin-top:14px;
+    page-break-inside:avoid;
+  }
+  .nursery-card h3{font-size:15pt; margin-bottom:2px;}
+  .nursery-card .meta{font-size:9.5pt; color:var(--olive); margin-bottom:8px;}
+  .nursery-card .facts{display:flex; flex-wrap:wrap; gap:6px 18px; font-size:9.5pt; margin-bottom:8px;}
+  .nursery-card .facts span b{color:var(--sage-dark);}
+  .rating{
+    display:inline-block; background:var(--sage-light); color:#fff; border-radius:999px;
+    padding:3px 10px; font-size:8.5pt; font-weight:600; margin-right:6px;
+  }
+  .rating.pending{background:var(--olive);}
+
+  .testi-grid{display:grid; grid-template-columns:1fr; gap:12px; margin-top:14px;}
+  .testi-card{background:var(--sand); border-radius:12px; padding:14px 16px; font-size:10pt; font-style:italic;}
+  .testi-card .who{margin-top:8px; font-style:normal; font-size:9pt; color:var(--sage-dark); font-weight:600;}
+
+  .footer-strip{
+    position:absolute; bottom:10mm; left:18mm; right:18mm;
+    display:flex; justify-content:space-between; font-size:8pt; color:var(--olive);
+    border-top:1px solid #e7e2dd; padding-top:6px;
+  }
+
+  .photo-row{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:16px;}
+  .photo-row img{width:100%; height:110px; object-fit:cover; border-radius:12px;}
+
+  @media print{
+    .page{padding:16mm 18mm;}
+    @page{ size:A4; margin:0; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- PAGE 1 — COVER -->
+  <section class="page cover">
+    <div class="cover-inner">
+      <div>
+        <img class="logo" src="assets/logo-badge.webp" alt="Alexandra Montessori logo" />
+        <h1>Alexandra Montessori</h1>
+        <div class="motto">Learning for life</div>
+        <div class="tagline">Quality Montessori childcare in London — authentic Montessori practice woven with the EYFS, for children aged 6 months to 5 years.</div>
+        <div class="badges">
+          <span class="badge">Ofsted-registered</span>
+          <span class="badge">EYFS Curriculum</span>
+          <span class="badge">Food Hygiene Rated</span>
+          <span class="badge">Montessori Approach</span>
+        </div>
+      </div>
+      <div class="locations">Hounslow &nbsp;·&nbsp; Heston &nbsp;·&nbsp; Hammersmith</div>
+    </div>
+  </section>
+
+  <!-- PAGE 2 — WELCOME / PHILOSOPHY -->
+  <section class="page">
+    <div class="eyebrow">Welcome</div>
+    <h2 class="section-title">A calm start to a lifetime of learning</h2>
+    <p class="lede">Both the Montessori philosophy and the Early Years Foundation Stage place the unique child at the centre, building positive relationships within an enabling environment. We bring the two together to support confidence, independence and readiness for school.</p>
+
+    <ul class="beliefs">
+      <li><b>The unique child.</b> Every child is capable, curious and at the very centre of all we do.</li>
+      <li><b>The practitioner as guide.</b> Our role is to observe, prepare and gently guide — never to direct.</li>
+      <li><b>The prepared environment.</b> A calm, ordered space, often called the "third teacher", that invites independence.</li>
+      <li><b>Natural materials.</b> Real, tactile, natural resources that make learning concrete and purposeful.</li>
+    </ul>
+
+    <div class="quote">"Education is the most powerful weapon which you can use to change the world." — Nelson Mandela</div>
+
+    <div class="photo-row">
+      <img src="assets/water-pouring.png" alt="" />
+      <img src="assets/teacher-hug.png" alt="" />
+      <img src="assets/materials-shelf.png" alt="" />
+    </div>
+    <div class="footer-strip"><span>Alexandra Montessori — Prospectus</span><span>alexandramontessori.co.uk</span></div>
+  </section>
+
+  <!-- PAGE 3 — CURRICULUM -->
+  <section class="page">
+    <div class="eyebrow">Our curriculum</div>
+    <h2 class="section-title">Montessori practice, woven with the EYFS</h2>
+    <p class="lede">The Early Years Foundation Stage (EYFS) is the UK's statutory framework for early education. It sets out seven areas of learning — three prime (Communication & Language, Personal, Social & Emotional Development, and Physical Development) and four specific (Literacy, Mathematics, Understanding the World, and Expressive Arts & Design). Our Montessori curriculum areas map onto and enrich this framework every day:</p>
+
+    <div class="curric-grid">
+      <div class="curric-card"><h4>Practical life</h4><p>Everyday activities that build independence, focus and self-belief.</p></div>
+      <div class="curric-card"><h4>Sensorial</h4><p>Hands-on materials that refine the senses and prepare the mind.</p></div>
+      <div class="curric-card"><h4>Language</h4><p>A rich, talk-filled environment where vocabulary and early reading grow.</p></div>
+      <div class="curric-card"><h4>Mathematics</h4><p>Concrete materials make number and pattern tangible before they're abstract.</p></div>
+      <div class="curric-card"><h4>Cultural & nature</h4><p>Geography, science and the natural world build knowledge and respect.</p></div>
+      <div class="curric-card"><h4>Creative arts</h4><p>Music, movement and art give every child a creative outlet.</p></div>
+    </div>
+
+    <p class="lede" style="margin-top:16px;"><b style="color:var(--sage-dark)">Intent, implementation, impact:</b> a broad, balanced curriculum with clear progression from the very start, delivered through child-led work cycles and play — building confident, independent learners who are happy, healthy and school-ready.</p>
+    <div class="footer-strip"><span>Alexandra Montessori — Prospectus</span><span>Our curriculum</span></div>
+  </section>
+
+  <!-- PAGE 4 — A DAY IN THE LIFE -->
+  <section class="page">
+    <div class="eyebrow">A day in the life</div>
+    <h2 class="section-title">What a day at Alexandra Montessori looks like</h2>
+    <table>
+      <tr><th>Time</th><th>Moment</th><th>What happens</th></tr>
+      <tr><td>08:00</td><td>Children arrive</td><td>A calm, settled welcome as children greet their key person and ease into the day.</td></tr>
+      <tr><td>09:00</td><td>Circle time</td><td>Coming together to sing, share and set the tone for the morning.</td></tr>
+      <tr><td>09:15</td><td>Work cycle — focused work</td><td>Uninterrupted Montessori time to choose activities and follow their curiosity.</td></tr>
+      <tr><td>10:00</td><td>Morning snack</td><td>A wholesome, balanced snack.</td></tr>
+      <tr><td>11:00</td><td>Outdoors</td><td>Fresh air, garden play and exploring the natural world.</td></tr>
+      <tr><td>12:15</td><td>Lunch</td><td>Nutritious, freshly prepared meals shared family-style.</td></tr>
+      <tr><td>12:45</td><td>Rest</td><td>Quiet time to recharge, with naps for those who need them.</td></tr>
+      <tr><td>13:15</td><td>Work cycle — crafts, cooking & science</td><td>Afternoon discovery through creative, hands-on activities.</td></tr>
+      <tr><td>14:00</td><td>Afternoon snack</td><td>A wholesome, balanced snack.</td></tr>
+      <tr><td>15:30</td><td>Tea</td><td>A wholesome afternoon tea together before the day winds down.</td></tr>
+      <tr><td>16:00</td><td>Work cycle — independent work</td><td>Gentle, independent play and learning until home time.</td></tr>
+      <tr><td>17:00</td><td>Early-evening snack</td><td>A final wholesome snack before collection.</td></tr>
+    </table>
+    <div class="footer-strip"><span>Alexandra Montessori — Prospectus</span><span>A day in the life</span></div>
+  </section>
+
+  <!-- PAGE 5 — SAFEGUARDING + TEAM -->
+  <section class="page">
+    <div class="eyebrow">Keeping your child safe</div>
+    <h2 class="section-title">Safeguarding & welfare</h2>
+    <div class="safety-grid">
+      <div class="safety-item">CCTV across all communal areas</div>
+      <div class="safety-item">Secure, intercom-controlled entry</div>
+      <div class="safety-item">No personal mobile phones in rooms</div>
+      <div class="safety-item">Safer recruitment and full vetting</div>
+      <div class="safety-item">Enhanced DBS checks for all staff</div>
+      <div class="safety-item">Ongoing safeguarding training</div>
+      <div class="safety-item">Strict visitor sign-in protocols</div>
+    </div>
+
+    <div class="eyebrow" style="margin-top:26px;">Our team</div>
+    <h2 class="section-title">Qualified, caring practitioners</h2>
+    <p class="lede">Our team is made up of dedicated Directors, Managers, Room Leaders, Nursery Practitioners and Nursery Assistants — all holding, or working towards, appropriate early-years qualifications, with many degree-holders among them.</p>
+    <p class="lede">We support genuine career growth through T-Levels, Level 2 & 3 Diplomas in Early Years, a Foundation Degree in Early Years, Early Childhood Studies degrees and teaching qualifications — alongside ongoing in-house training in paediatric first aid, safeguarding, food hygiene, fire safety, child development, curriculum practice, planning &amp; observation, and customer care.</p>
+    <div class="footer-strip"><span>Alexandra Montessori — Prospectus</span><span>Safeguarding & our team</span></div>
+  </section>
+
+  <!-- PAGE 6 — FUNDING -->
+  <section class="page">
+    <div class="eyebrow">Funding your child's place</div>
+    <h2 class="section-title">Funded childcare options</h2>
+    <div class="fund-grid">
+      <div class="fund-card"><h4>Funded childcare from 9 months</h4><p>Eligible working parents of children from 9 months old can register to access 15 hours of government-funded childcare a week.</p></div>
+      <div class="fund-card"><h4>15 hours free childcare</h4><p>All three- and four-year-olds are entitled to 15 hours of free early education a week, over 38 weeks of the year.</p></div>
+      <div class="fund-card"><h4>30 hours free childcare</h4><p>Working parents of three- and four-year-olds may be eligible for an additional 15 hours — up to 30 hours a week.</p></div>
+      <div class="fund-card"><h4>Two-year-old funding</h4><p>Some two-year-olds also qualify for 15 hours a week, depending on family circumstances and eligibility.</p></div>
+    </div>
+
+    <h3 style="margin-top:24px; font-size:12pt;">Getting started</h3>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><p>Check eligibility with our team</p></div>
+      <div class="step"><div class="step-num">2</div><p>Register with proof of date of birth &amp; eligibility</p></div>
+      <div class="step"><div class="step-num">3</div><p>Sign a short parental declaration each term</p></div>
+    </div>
+    <div class="footer-strip"><span>Alexandra Montessori — Prospectus</span><span>Funding</span></div>
+  </section>
+
+  <!-- PAGE 7 — OUR THREE NURSERIES -->
+  <section class="page">
+    <div class="eyebrow">Our three nurseries</div>
+    <h2 class="section-title">Hounslow · Heston · Hammersmith</h2>
+
+    <div class="nursery-card">
+      <h3>Hounslow</h3>
+      <div class="meta">Ved Court, Alexandra Road, Hounslow TW3 1LS</div>
+      <div class="facts">
+        <span><b>Phone:</b> 0208 001 5165</span>
+        <span><b>Email:</b> info@alexandramontessori.co.uk</span>
+        <span><b>Ages:</b> 6 months – 5 years</span>
+        <span><b>Hours:</b> Mon–Fri, 8am–6pm</span>
+      </div>
+      <div><span class="rating">Ofsted: Good</span><span class="rating">Food hygiene: 4</span></div>
+      <p style="margin-top:8px; font-size:9.5pt;">Authentic Montessori practice with a caring, family feel at the heart of Hounslow.</p>
+    </div>
+
+    <div class="nursery-card">
+      <h3>Heston</h3>
+      <div class="meta">36 Springwell Road, Hounslow TW5 9EJ</div>
+      <div class="facts">
+        <span><b>Phone:</b> 0203 627 6707</span>
+        <span><b>Email:</b> heston@alexandramontessori.co.uk</span>
+        <span><b>Ages:</b> 6 months – 5 years</span>
+        <span><b>Hours:</b> Mon–Fri, 8am–6pm</span>
+      </div>
+      <div><span class="rating pending">Ofsted: newly registered</span><span class="rating">Food hygiene: 5</span></div>
+      <p style="margin-top:8px; font-size:9.5pt;">A warm, welcoming home for early learners, with spacious studios and a secure garden.</p>
+    </div>
+
+    <div class="nursery-card">
+      <h3>Hammersmith</h3>
+      <div class="meta">Dalling Road, London W6 0EU</div>
+      <div class="facts">
+        <span><b>Phone:</b> 0204 618 3477</span>
+        <span><b>Email:</b> hammersmith@alexandramontessori.co.uk</span>
+        <span><b>Ages:</b> 12 months – 5 years</span>
+        <span><b>Hours:</b> Mon–Fri, 8am–6pm</span>
+      </div>
+      <div><span class="rating">Ofsted: Good</span><span class="rating pending">Food hygiene: pending listing</span></div>
+      <p style="margin-top:8px; font-size:9.5pt;">Just a short walk from Ravenscourt Park, offering calm, prepared Montessori environments close to nature.</p>
+    </div>
+    <div class="footer-strip"><span>Alexandra Montessori — Prospectus</span><span>Our nurseries</span></div>
+  </section>
+
+  <!-- PAGE 8 — TESTIMONIALS + NEXT STEPS -->
+  <section class="page">
+    <div class="eyebrow">What parents say</div>
+    <h2 class="section-title">Families in their own words</h2>
+    <div class="testi-grid">
+      <div class="testi-card">"You can feel the calm the moment you step inside. The Montessori environment has done wonders for our son's confidence, and the practitioners always know where he is in his learning."<div class="who">Parent of a 2-year-old, Hounslow</div></div>
+      <div class="testi-card">"I can only highly recommend Alexandra Montessori... He has even learned some Mandarin now and can say a few words. The care and attention from the whole team have made such a difference to him."<div class="who">Parent of a 4-year-old, Heston</div></div>
+      <div class="testi-card">"My son was so eager that he would even ask me during the school holidays. The children are really well looked after, and the team is genuinely focused on child development and stimulation."<div class="who">Parent of a 3-year-old, Hammersmith</div></div>
+    </div>
+
+    <div class="eyebrow" style="margin-top:26px;">Next steps</div>
+    <h2 class="section-title">Ready to meet us?</h2>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><p><b>Book a visit</b> — see the nursery, meet the team, watch a Montessori morning in action.</p></div>
+      <div class="step"><div class="step-num">2</div><p><b>Apply</b> — register your child's place through our online application portal.</p></div>
+      <div class="step"><div class="step-num">3</div><p><b>Download your fee sheet</b> — available per branch at alexandramontessori.co.uk/fees.</p></div>
+    </div>
+    <div class="footer-strip"><span>Alexandra Montessori — Prospectus</span><span>info@alexandramontessori.co.uk</span></div>
+  </section>
+
+</body>
+</html>
