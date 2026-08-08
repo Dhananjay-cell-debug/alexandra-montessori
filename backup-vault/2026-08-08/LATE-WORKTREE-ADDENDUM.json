@@ -1,0 +1,20 @@
+{
+  "createdUtc": "2026-08-08T09:31:14.8108465Z",
+  "reason": "Preserve an external/local credential-bearing edit detected after the main archival commit without exposing its plaintext in Git history.",
+  "format": "AMVAULT1",
+  "cipher": "AES-256-GCM",
+  "keyFingerprintSha256Prefix": "8B049476E07870D4",
+  "file": "late-worktree-change-20260808-135649.tar.amvault",
+  "contains": [
+    {
+      "path": "_migrate-hostinger.sh",
+      "sha256": "32ddeff0251a458652e203fa5f8eafbb6f40338d2cdccf52285da5a400966965"
+    }
+  ],
+  "plainTarSize": 4608,
+  "plainTarSha256": "77c1f93c0d0ad7cd95aad50e08add3251fa9a588abbd2a45f50f3af18e9c6047",
+  "encryptedSize": 4882,
+  "encryptedSha256": "314ee21f59e18afb7037e50aa1df68993d516621830aa665dd97237a1de70a8c",
+  "encryptedOnDiskHashVerified": true,
+  "plaintextCommitted": false
+}

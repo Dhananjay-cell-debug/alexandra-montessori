@@ -1,6 +1,6 @@
 # Alexandra encrypted recovery vault
 
-The vault contains six authenticated AES-256-GCM archives created on 8 August
+The vault contains seven authenticated AES-256-GCM archives created on 8 August
 2026. The encryption key is deliberately **not** stored in GitHub.
 
 The expected key-file SHA-256 fingerprint prefix is:
@@ -29,6 +29,9 @@ the vault defeats the protection.
 - `production-wordpress-complete-20260808-125819.tar.amvault` — fresh official
   production database, complete WordPress docroot (`wp-admin`, core, plugins,
   themes, uploads, configuration), and private application uploads.
+- `late-worktree-change-20260808-135649.tar.amvault` — an exact encrypted
+  addendum for a credential-bearing deployment-helper edit detected after the
+  main archive commit; its metadata is in `LATE-WORKTREE-ADDENDUM.json`.
 
 `2026-08-08/MANIFEST.json` records plaintext/encrypted sizes and SHA-256 hashes.
 The verification files record archive readability and pre/post-transfer hash
@@ -65,4 +68,3 @@ staging restore, update WordPress URLs safely after import and keep the staging
 database, mail delivery, cron, analytics, and forms isolated from the client
 site. Do not overwrite official production without a new verified backup and a
 reviewed rollback plan.
-
