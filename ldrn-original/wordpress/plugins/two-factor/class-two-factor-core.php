@@ -1,0 +1,2966 @@
+<?php
+/**
+ * Two Factor Core Class.
+ *
+ * @package Two_Factor
+ */
+
+/**
+ * Class for creating two factor authorization.
+ *
+ * @since 0.2.0
+ *
+ * @package Two_Factor
+ */
+class Two_Factor_Core {
+
+	/**
+	 * The user meta provider key.
+	 *
+	 * @type string
+	 */
+	const PROVIDER_USER_META_KEY = '_two_factor_provider';
+
+	/**
+	 * The user meta enabled providers key.
+	 *
+	 * @type string
+	 */
+	const ENABLED_PROVIDERS_USER_META_KEY = '_two_factor_enabled_providers';
+
+	/**
+	 * The site-wide enabled providers option key.
+	 *
+	 * @since 0.17.0
+	 *
+	 * @type string
+	 */
+	const ENABLED_PROVIDERS_OPTION_KEY = 'two_factor_enabled_providers';
+
+	/**
+	 * The user meta nonce key.
+	 *
+	 * @type string
+	 */
+	const USER_META_NONCE_KEY = '_two_factor_nonce';
+
+	/**
+	 * The user meta key to store the last failed timestamp.
+	 *
+	 * @type string
+	 */
+	const USER_RATE_LIMIT_KEY = '_two_factor_last_login_failure';
+
+	/**
+	 * The user meta key to store the number of failed login attempts.
+	 *
+	 * @var string
+	 */
+	const USER_FAILED_LOGIN_ATTEMPTS_KEY = '_two_factor_failed_login_attempts';
+
+	/**
+	 * The user meta key to store whether or not the password was reset.
+	 *
+	 * @var string
+	 */
+	const USER_PASSWORD_WAS_RESET_KEY = '_two_factor_password_was_reset';
+
+	/**
+	 * URL query parameter used for our custom actions.
+	 *
+	 * @var string
+	 */
+	const USER_SETTINGS_ACTION_QUERY_VAR = 'two_factor_action';
+
+	/**
+	 * Nonce key for user settings.
+	 *
+	 * @var string
+	 */
+	const USER_SETTINGS_ACTION_NONCE_QUERY_ARG = '_two_factor_action_nonce';
+
+	/**
+	 * Namespace for plugin rest api endpoints.
+	 *
+	 * @var string
+	 */
+	const REST_NAMESPACE = 'two-factor/1.0';
+
+	/**
+	 * Keep track of all the password-based authentication sessions that
+	 * need to invalidated before the second factor authentication.
+	 *
+	 * @var array
+	 */
+	private static $password_auth_tokens = array();
+
+	/**
+	 * Keep track of any errors related to setting updates.
+	 *
+	 * @var array
+	 */
+	private static $profile_errors = array();
+
+	/**
+	 * Keep track of the user IDs that were authenticated via an application
+	 * password during the current request.
+	 *
+	 * @var array
+	 */
+	private static $app_password_auth_user_ids = array();
+
+	/**
+	 * Set up filters and actions.
+	 *
+	 * @param object $compat A compatibility layer for plugins.
+	 *
+	 * @since 0.2.0
+	 */
+	public static function add_hooks( $compat ) {
+		// Allow providers to register their hooks.
+		add_action( 'init', array( __CLASS__, 'get_providers' ) ); // @phpstan-ignore return.void
+
+		add_filter( 'wp_login_errors', array( __CLASS__, 'maybe_show_reset_password_notice' ) );
+		add_action( 'after_password_reset', array( __CLASS__, 'clear_password_reset_notice' ) );
+		add_action( 'login_form_validate_2fa', array( __CLASS__, 'login_form_validate_2fa' ) );
+		add_action( 'login_form_revalidate_2fa', array( __CLASS__, 'login_form_revalidate_2fa' ) );
+
+		add_action( 'show_user_profile', array( __CLASS__, 'user_two_factor_options' ) );
+		add_action( 'edit_user_profile', array( __CLASS__, 'user_two_factor_options' ) );
+		add_action( 'personal_options_update', array( __CLASS__, 'user_two_factor_options_update' ) );
+		add_action( 'edit_user_profile_update', array( __CLASS__, 'user_two_factor_options_update' ) );
+		add_filter( 'manage_users_columns', array( __CLASS__, 'filter_manage_users_columns' ) );
+		add_filter( 'wpmu_users_columns', array( __CLASS__, 'filter_manage_users_columns' ) );
+		add_filter( 'manage_users_custom_column', array( __CLASS__, 'manage_users_custom_column' ), 10, 3 );
+
+		// 1. Prevent WP core from sending login cookies after username/password authentication (priority 30).
+		add_filter( 'authenticate', array( __CLASS__, 'filter_authenticate' ), 31 );
+
+		// Keep track of the users authenticated via an application password during this request.
+		add_action( 'application_password_did_authenticate', array( __CLASS__, 'app_password_did_authenticate' ), 10, 1 );
+
+		// 2. Render two-factor UI after WP core has validated username/password during `wp_signon()`.
+		add_action( 'wp_login', array( __CLASS__, 'wp_login' ), PHP_INT_MAX, 2 );
+		add_action( 'user_profile_update_errors', array( __CLASS__, 'action_user_profile_update_errors' ) );
+
+		/**
+		 * Keep track of all the user sessions for which we need to invalidate the
+		 * authentication cookies set during the initial password check.
+		 *
+		 * Is there a better way of doing this?
+		 */
+		add_action( 'set_auth_cookie', array( __CLASS__, 'collect_auth_cookie_tokens' ) );
+		add_action( 'set_logged_in_cookie', array( __CLASS__, 'collect_auth_cookie_tokens' ) );
+
+		add_filter( 'attach_session_information', array( __CLASS__, 'filter_session_information' ), 10, 2 );
+
+		add_action( 'login_enqueue_scripts', array( __CLASS__, 'login_enqueue_scripts' ), 5 );
+		add_action( 'admin_init', array( __CLASS__, 'trigger_user_settings_action' ) );
+		add_action( 'admin_init', array( __CLASS__, 'add_privacy_policy_content' ) );
+		add_filter( 'two_factor_providers', array( __CLASS__, 'enable_dummy_method_for_debug' ) );
+
+		// Add Settings link to plugin action links.
+		add_filter( 'plugin_action_links_' . plugin_basename( TWO_FACTOR_DIR . 'two-factor.php' ), array( __CLASS__, 'add_settings_action_link' ) );
+
+		$compat->init();
+	}
+
+	/**
+	 * Register login page scripts.
+	 *
+	 * @since 0.10.0
+	 *
+	 * @codeCoverageIgnore
+	 */
+	public static function login_enqueue_scripts() {
+		$environment_prefix = file_exists( TWO_FACTOR_DIR . '/dist' ) ? '/dist' : '';
+
+		wp_register_script(
+			'two-factor-login',
+			plugins_url( $environment_prefix . '/providers/js/two-factor-login.js', __FILE__ ),
+			array(),
+			TWO_FACTOR_VERSION,
+			true
+		);
+
+		wp_register_script(
+			'two-factor-login-authcode',
+			plugins_url( $environment_prefix . '/providers/js/two-factor-login-authcode.js', __FILE__ ),
+			array(),
+			TWO_FACTOR_VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Delete all plugin data on uninstall.
+	 *
+	 * @since 0.10.0
+	 *
+	 * @return void
+	 */
+	public static function uninstall() {
+		// Keep this updated as user meta keys are added or removed.
+		$user_meta_keys = array(
+			self::PROVIDER_USER_META_KEY,
+			self::ENABLED_PROVIDERS_USER_META_KEY,
+			self::USER_META_NONCE_KEY,
+			self::USER_RATE_LIMIT_KEY,
+			self::USER_FAILED_LOGIN_ATTEMPTS_KEY,
+			self::USER_PASSWORD_WAS_RESET_KEY,
+		);
+
+		// Keep this updated as plugin-level options are added or removed.
+		$option_keys = array(
+			self::ENABLED_PROVIDERS_OPTION_KEY,
+		);
+
+		$providers = self::get_default_providers();
+
+		/** This filter is documented in the get_providers() method */
+		$additional_providers = apply_filters( 'two_factor_providers', $providers );
+
+		// Merge them with the default providers.
+		if ( ! empty( $additional_providers ) ) {
+			$providers = array_merge( $providers, $additional_providers );
+		}
+
+		foreach ( self::get_providers_classes( $providers ) as $provider_class ) {
+			// Merge with provider-specific user meta keys.
+			if ( method_exists( $provider_class, 'uninstall_user_meta_keys' ) ) {
+				try {
+					$user_meta_keys = array_merge(
+						$user_meta_keys,
+						call_user_func( array( $provider_class, 'uninstall_user_meta_keys' ) )
+					);
+				} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Intentionally empty, provider may not implement this method.
+				}
+			}
+
+			// Merge with provider-specific option keys.
+			if ( method_exists( $provider_class, 'uninstall_options' ) ) {
+				try {
+					$option_keys = array_merge(
+						$option_keys,
+						call_user_func( array( $provider_class, 'uninstall_options' ) )
+					);
+				} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch -- Intentionally empty, provider may not implement this method.
+				}
+			}
+		}
+
+		// Delete options first since that is faster.
+		foreach ( $option_keys as $option_key ) {
+			delete_option( $option_key );
+		}
+
+		foreach ( $user_meta_keys as $meta_key ) {
+			delete_metadata( 'user', 0, $meta_key, '', true );
+		}
+	}
+
+	/**
+	 * Get the registered providers of which some might not be enabled.
+	 *
+	 * @since 0.11.0
+	 *
+	 * @return array List of provider keys and paths to class files.
+	 */
+	private static function get_default_providers() {
+		return array(
+			'Two_Factor_Email'        => TWO_FACTOR_DIR . 'providers/class-two-factor-email.php',
+			'Two_Factor_Totp'         => TWO_FACTOR_DIR . 'providers/class-two-factor-totp.php',
+			'Two_Factor_Backup_Codes' => TWO_FACTOR_DIR . 'providers/class-two-factor-backup-codes.php',
+			'Two_Factor_Dummy'        => TWO_FACTOR_DIR . 'providers/class-two-factor-dummy.php',
+		);
+	}
+
+	/**
+	 * Get the classnames for specific providers.
+	 *
+	 * @since 0.10.0
+	 *
+	 * @param array $providers List of paths to provider class files indexed by class names.
+	 *
+	 * @return array List of provider keys and classnames.
+	 */
+	private static function get_providers_classes( $providers ) {
+		foreach ( $providers as $provider_key => $path ) {
+			if ( ! empty( $path ) && is_readable( $path ) ) {
+				require_once $path;
+			}
+
+			$class = $provider_key;
+
+			/**
+			 * Filters the classname for a provider. The dynamic portion of the filter is the defined providers key.
+			 *
+			 * @since 0.9.0
+			 *
+			 * @param string $class The PHP Classname of the provider.
+			 * @param string $path  The provided provider path to be included.
+			 */
+			$class = apply_filters( "two_factor_provider_classname_{$provider_key}", $class, $path );
+
+			/**
+			 * Confirm that it's been successfully included.
+			 */
+			if ( class_exists( $class ) ) {
+				$providers[ $provider_key ] = $class;
+			} else {
+				unset( $providers[ $provider_key ] );
+			}
+		}
+
+		return $providers;
+	}
+
+	/**
+	 * Get all registered two-factor providers with keys as the original
+	 * provider class names and the values as the provider class instances.
+	 *
+	 * @see Two_Factor_Core::get_enabled_providers_for_user()
+	 * @see Two_Factor_Core::get_supported_providers_for_user()
+	 *
+	 * @since 0.2.0
+	 *
+	 * @return Two_Factor_Provider[]
+	 */
+	public static function get_providers() {
+		$providers = self::get_default_providers();
+
+		/**
+		 * Filter the supplied providers.
+		 *
+		 * This lets third-parties either remove providers (such as Email), or
+		 * add their own providers (such as text message or Clef).
+		 *
+		 * @since 0.1-dev
+		 *
+		 * @param array $providers A key-value array where the key is the class name, and
+		 *                         the value is the path to the file containing the class.
+		 */
+		$providers = apply_filters( 'two_factor_providers', $providers );
+
+		// Map provider keys to classes so that we can instantiate them.
+		$providers = self::get_providers_classes( $providers );
+
+		// TODO: Refactor this to avoid instantiating the provider instances every time this method is called.
+		foreach ( $providers as $provider_key => $provider_class ) {
+			try {
+				$providers[ $provider_key ] = call_user_func( array( $provider_class, 'get_instance' ) );
+			} catch ( Exception $e ) {
+				unset( $providers[ $provider_key ] );
+			}
+		}
+
+		return $providers;
+	}
+
+	/**
+	 * Get providers available for user which may not be enabled or configured.
+	 *
+	 * @since 0.13.0
+	 *
+	 * @see Two_Factor_Core::get_enabled_providers_for_user()
+	 * @see Two_Factor_Core::get_available_providers_for_user()
+	 *
+	 * @param  WP_User|int|null $user User ID.
+	 *
+	 * @return Two_Factor_Provider[] List of provider instances indexed by provider key.
+	 */
+	public static function get_supported_providers_for_user( $user = null ) {
+		$user      = self::fetch_user( $user );
+		$providers = self::get_providers();
+
+		/**
+		 * List of providers available to user which may not be enabled or configured.
+		 *
+		 * @param array       $providers List of available provider instances indexed by provider key.
+		 * @param int|WP_User $user User ID.
+		 */
+		return apply_filters( 'two_factor_providers_for_user', $providers, $user );
+	}
+
+	/**
+	 * Enable the dummy method only during debugging.
+	 *
+	 * @since 0.5.2
+	 *
+	 * @param array $methods List of enabled methods.
+	 *
+	 * @return array
+	 */
+	public static function enable_dummy_method_for_debug( $methods ) {
+		if ( ! self::is_wp_debug() ) {
+			unset( $methods['Two_Factor_Dummy'] );
+		}
+
+		return $methods;
+	}
+
+	/**
+	 * Add Plugin and User Settings link to the plugin action links on the Plugins screen.
+	 *
+	 * @since 0.14.3
+	 *
+	 * @param string[] $links An array of plugin action links.
+	 * @return string[] Modified array with the User Settings link added.
+	 */
+	public static function add_settings_action_link( $links ) {
+		$plugin_settings_url  = admin_url( 'options-general.php?page=two-factor-settings' );
+		$plugin_settings_link = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( $plugin_settings_url ),
+			esc_html__( 'Plugin Settings', 'two-factor' )
+		);
+
+		$user_settings_url  = admin_url( 'profile.php#application-passwords-section' );
+		$user_settings_link = sprintf(
+			'<a href="%s">%s</a>',
+			esc_url( $user_settings_url ),
+			esc_html__( 'User Settings', 'two-factor' )
+		);
+
+		// Show plugin settings first, then user settings.
+		array_unshift( $links, $user_settings_link );
+
+		if ( current_user_can( 'manage_options' ) ) {
+			array_unshift( $links, $plugin_settings_link );
+		}
+
+		return $links;
+	}
+
+	/**
+	 * Register an error associated with the current request.
+	 *
+	 * @param WP_Error $error Error instance.
+
+	 * @return void
+	 */
+	private static function add_error( WP_Error $error ) {
+		self::$profile_errors[ $error->get_error_code() ] = $error;
+	}
+
+	/**
+	 * Attach Two-Factor profile errors to WordPress core profile update errors.
+	 *
+	 * @since 0.16.0
+	 *
+	 * @param WP_Error $errors WP_Error object passed by core.
+	 *
+	 * @return void
+	 */
+	public static function action_user_profile_update_errors( WP_Error $errors ) {
+		foreach ( self::$profile_errors as $profile_error ) {
+			foreach ( $profile_error->get_error_codes() as $code ) {
+				foreach ( $profile_error->get_error_messages( $code ) as $message ) {
+					$errors->add( $code, $message );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Check if the debug mode is enabled.
+	 *
+	 * @since 0.5.2
+	 *
+	 * @return boolean
+	 */
+	protected static function is_wp_debug() {
+		return ( defined( 'WP_DEBUG' ) && WP_DEBUG );
+	}
+
+	/**
+	 * Get the user settings page URL.
+	 *
+	 * Fetch this from the plugin core after we introduce proper dependency injection
+	 * and get away from the singletons at the provider level (should be handled by core).
+	 *
+	 * @since 0.5.2
+	 *
+	 * @param integer $user_id User ID.
+	 *
+	 * @return string
+	 */
+	protected static function get_user_settings_page_url( $user_id ) {
+		if ( defined( 'IS_PROFILE_PAGE' ) && IS_PROFILE_PAGE ) {
+			return self_admin_url( 'profile.php' );
+		}
+
+		return add_query_arg(
+			array(
+				'user_id' => intval( $user_id ),
+			),
+			self_admin_url( 'user-edit.php' )
+		);
+	}
+
+	/**
+	 * Get the URL for resetting the secret token.
+	 *
+	 * @since 0.5.2
+	 *
+	 * @param integer $user_id User ID.
+	 * @param string  $action Custom two factor action key.
+	 *
+	 * @return string
+	 */
+	public static function get_user_update_action_url( $user_id, $action ) {
+		return wp_nonce_url(
+			add_query_arg(
+				array(
+					self::USER_SETTINGS_ACTION_QUERY_VAR => $action,
+				),
+				self::get_user_settings_page_url( $user_id )
+			),
+			sprintf( '%d-%s', $user_id, $action ),
+			self::USER_SETTINGS_ACTION_NONCE_QUERY_ARG
+		);
+	}
+
+	/**
+	 * Get the two-factor revalidate URL.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param bool $interim If the URL should load the interim login iframe modal.
+	 * @return string
+	 */
+	public static function get_user_two_factor_revalidate_url( $interim = false ) {
+		$args = array(
+			'action' => 'revalidate_2fa',
+		);
+		if ( $interim ) {
+			$args['interim-login'] = 1;
+		}
+
+		return self::login_url( $args );
+	}
+
+	/**
+	 * Check if a user action is valid.
+	 *
+	 * @since 0.5.2
+	 *
+	 * @param integer $user_id User ID.
+	 * @param string  $action User action ID.
+	 *
+	 * @return boolean
+	 */
+	public static function is_valid_user_action( $user_id, $action ) {
+		$request_nonce_raw = isset( $_REQUEST[ self::USER_SETTINGS_ACTION_NONCE_QUERY_ARG ] ) ? wp_unslash( $_REQUEST[ self::USER_SETTINGS_ACTION_NONCE_QUERY_ARG ] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Value sanitized and then only passed to wp_verify_nonce().
+		if ( ! is_scalar( $request_nonce_raw ) ) {
+			$request_nonce = '';
+		} else {
+			$request_nonce = sanitize_text_field( (string) $request_nonce_raw );
+		}
+
+		if ( ! $user_id || ! $action || ! $request_nonce ) {
+			return false;
+		}
+
+		return wp_verify_nonce(
+			$request_nonce,
+			sprintf( '%d-%s', $user_id, $action )
+		);
+	}
+
+	/**
+	 * Get the ID of the user being edited.
+	 *
+	 * @since 0.5.2
+	 *
+	 * @return integer
+	 */
+	public static function current_user_being_edited() {
+		// Try to resolve the user ID from the request first.
+		if ( ! empty( $_REQUEST['user_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in trigger_user_settings_action() via is_valid_user_action() before any state change.
+			$user_id = intval( $_REQUEST['user_id'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in trigger_user_settings_action() via is_valid_user_action() before any state change.
+
+			if ( current_user_can( 'edit_user', $user_id ) ) {
+				return $user_id;
+			}
+		}
+
+		return get_current_user_id();
+	}
+
+	/**
+	 * Trigger our custom update action if a valid
+	 * action request is detected and passes the nonce check.
+	 *
+	 * @since 0.5.2
+	 *
+	 * @return void
+	 */
+	public static function trigger_user_settings_action() {
+		$action_raw = isset( $_REQUEST[ self::USER_SETTINGS_ACTION_QUERY_VAR ] ) ? wp_unslash( $_REQUEST[ self::USER_SETTINGS_ACTION_QUERY_VAR ] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Value sanitized below; nonce verified in is_valid_user_action() before do_action.
+		$action     = ( is_scalar( $action_raw ) && '' !== (string) $action_raw ) ? sanitize_key( (string) $action_raw ) : '';
+		$user_id    = self::current_user_being_edited();
+
+		if ( self::is_valid_user_action( $user_id, $action ) ) {
+			/**
+			 * This action is triggered when a valid Two Factor settings
+			 * action is detected and it passes the nonce validation.
+			 *
+			 * @param integer $user_id User ID.
+			 * @param string $action Settings action.
+			 */
+			do_action( 'two_factor_user_settings_action', $user_id, $action );
+		}
+	}
+
+	/**
+	 * Keep track of all the authentication cookies that need to be
+	 * invalidated before the second factor authentication.
+	 *
+	 * @since 0.5.1
+	 *
+	 * @param string $cookie Cookie string.
+	 *
+	 * @return void
+	 */
+	public static function collect_auth_cookie_tokens( $cookie ) {
+		$parsed = wp_parse_auth_cookie( $cookie );
+
+		if ( ! empty( $parsed['token'] ) ) {
+			self::$password_auth_tokens[] = $parsed['token'];
+		}
+	}
+
+	/**
+	 * Fetch the WP_User object for a provided input.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param int|WP_User $user Optional. The WP_User or user ID. Defaults to current user.
+	 *
+	 * @return false|WP_User WP_User on success, false on failure.
+	 */
+	public static function fetch_user( $user = null ) {
+		if ( null === $user ) {
+			$user = wp_get_current_user();
+		} elseif ( ! ( $user instanceof WP_User ) ) {
+			$user = get_user_by( 'id', $user );
+		}
+
+		if ( ! $user || ! $user->exists() ) {
+			return false;
+		}
+
+		return $user;
+	}
+
+	/**
+	 * Get the provider keys stored in user meta, normalised.
+	 *
+	 * Returns the raw stored list without intersecting against registered providers and
+	 * without applying `two_factor_enabled_providers_for_user`, so callers can distinguish
+	 * "this user has no registered providers left" from "a filter intentionally cleared the list".
+	 *
+	 * @since 0.17.0
+	 *
+	 * @param WP_User $user User object.
+	 *
+	 * @return string[] Provider keys stored for the user. May include keys that are no longer registered.
+	 */
+	private static function get_stored_provider_keys_for_user( $user ) {
+		$stored = get_user_meta( $user->ID, self::ENABLED_PROVIDERS_USER_META_KEY, true );
+
+		if ( ! is_array( $stored ) ) {
+			$stored = array();
+		}
+
+		return array_values( array_filter( $stored, 'is_string' ) );
+	}
+
+	/**
+	 * Get two-factor providers that are enabled for the specified (or current) user
+	 * but might not be configured, yet.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @see Two_Factor_Core::get_supported_providers_for_user()
+	 * @see Two_Factor_Core::get_available_providers_for_user()
+	 *
+	 * @param int|WP_User $user Optional. User ID, or WP_User object of the the user. Defaults to current user.
+	 *
+	 * @return string[] List of keys of enabled providers for the user.
+	 */
+	public static function get_enabled_providers_for_user( $user = null ) {
+		$user = self::fetch_user( $user );
+		if ( ! $user ) {
+			return array();
+		}
+
+		$providers         = self::get_supported_providers_for_user( $user );
+		$enabled_providers = array_intersect(
+			self::get_stored_provider_keys_for_user( $user ),
+			array_keys( $providers )
+		);
+
+		/**
+		 * Filter the enabled two-factor authentication providers for this user.
+		 *
+		 * @since 0.5.2
+		 *
+		 * @param array  $enabled_providers The enabled providers.
+		 * @param int    $user_id           The user ID.
+		 */
+		return apply_filters( 'two_factor_enabled_providers_for_user', $enabled_providers, $user->ID );
+	}
+
+	/**
+	 * Get all two-factor providers that are both enabled and configured
+	 * for the specified (or current) user.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @see Two_Factor_Core::get_supported_providers_for_user()
+	 * @see Two_Factor_Core::get_enabled_providers_for_user()
+	 *
+	 * @param int|WP_User $user Optional. User ID, or WP_User object of the the user. Defaults to current user.
+	 * @return Two_Factor_Provider[]|WP_Error List of provider instances, or a WP_Error if the user's stored
+	 *                                        providers are no longer registered and the fallback provider
+	 *                                        (`Two_Factor_Email` by default, see `two_factor_fallback_provider_for_user`)
+	 *                                        doesn't resolve to a registered, available provider.
+	 */
+	public static function get_available_providers_for_user( $user = null ) {
+		$user = self::fetch_user( $user );
+		if ( ! $user ) {
+			return array();
+		}
+
+		$providers            = self::get_supported_providers_for_user( $user ); // Returns full objects.
+		$enabled_providers    = self::get_enabled_providers_for_user( $user ); // Returns just the keys.
+		$configured_providers = array();
+		$stored_providers     = self::get_stored_provider_keys_for_user( $user );
+
+		/**
+		 * If the user has providers stored in meta but none of them are still registered, force
+		 * emailed codes on where available so removed or deprecated providers can't drop the user
+		 * to single-factor auth ('failing open').
+		 *
+		 * "No longer registered" is deliberately cause-agnostic: a provider dropped by plugin
+		 * deactivation, by the site-wide settings, or by `two_factor_providers_for_user` is treated
+		 * identically, because the outcome for the user is identical.
+		 *
+		 * If any stored provider IS still registered, an empty enabled list means
+		 * `two_factor_enabled_providers_for_user` cleared it on purpose, and that must be respected.
+		 */
+		if ( empty( $enabled_providers ) && ! empty( $stored_providers ) ) {
+			$still_registered = array_intersect( $stored_providers, array_keys( $providers ) );
+
+			if ( empty( $still_registered ) ) {
+				/**
+				 * Filter the provider forced on when none of a user's stored providers are still registered.
+				 *
+				 * Returning a key that is not registered, or that the provider itself reports as unavailable
+				 * for this user, is treated as "no fallback": the method returns a `no_available_2fa_methods`
+				 * WP_Error rather than allowing the user through with one factor.
+				 *
+				 * The returned provider must be usable without any prior per-user setup (like the email
+				 * provider is), since the user has no working provider left to configure it through:
+				 *
+				 *     add_filter( 'two_factor_fallback_provider_for_user', function() {
+				 *         return 'Two_Factor_Backup_Codes'; // Wrong: requires codes to already be generated.
+				 *     } );
+				 *
+				 * A fallback that is not already available for the user resolves to the WP_Error branch,
+				 * not to a silent single-factor login.
+				 *
+				 * @since 0.17.0
+				 *
+				 * @param string   $fallback_provider Provider key to force on. Default 'Two_Factor_Email'.
+				 * @param int      $user_id           The user ID.
+				 * @param string[] $stored_providers  Provider keys stored for the user, none of which are registered.
+				 */
+				$fallback_provider = apply_filters(
+					'two_factor_fallback_provider_for_user',
+					'Two_Factor_Email',
+					$user->ID,
+					$stored_providers
+				);
+
+				if (
+					is_string( $fallback_provider )
+					&& isset( $providers[ $fallback_provider ] )
+					&& $providers[ $fallback_provider ]->is_available_for_user( $user )
+				) {
+					// Force the fallback provider to 'on'.
+					$enabled_providers[] = $fallback_provider;
+				} else {
+					// Fail closed: an invalid, unregistered, or unavailable fallback locks the user
+					// out pending admin intervention, rather than letting them through with one factor.
+					return new WP_Error(
+						'no_available_2fa_methods',
+						__( 'Error: You have Two Factor method(s) enabled, but the provider(s) no longer exist. Please contact a site administrator for assistance.', 'two-factor' ),
+						array(
+							'user_providers_raw'  => $stored_providers,
+							'available_providers' => array_keys( $providers ),
+							'fallback_provider'   => $fallback_provider,
+						)
+					);
+				}
+			}
+		}
+
+		foreach ( $providers as $provider_key => $provider ) {
+			if ( in_array( $provider_key, $enabled_providers, true ) && $provider->is_available_for_user( $user ) ) {
+				$configured_providers[ $provider_key ] = $provider;
+			}
+		}
+
+		return $configured_providers;
+	}
+
+	/**
+	 * Fetch the provider for the request based on the user preferences.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param int|WP_User        $user Optional. User ID, or WP_User object of the the user. Defaults to current user.
+	 * @param null|string|object $preferred_provider Optional. The name of the provider, the provider, or empty.
+	 * @return null|object|WP_Error The provider, null if none is available, or a WP_Error if the user has
+	 *                               provider(s) enabled that are no longer registered (see
+	 *                               Two_Factor_Core::get_primary_provider_for_user()).
+	 */
+	public static function get_provider_for_user( $user = null, $preferred_provider = null ) {
+		$user = self::fetch_user( $user );
+		if ( ! $user ) {
+			return null;
+		}
+
+		// If a specific provider instance is passed, process it just as the key.
+		if ( $preferred_provider && $preferred_provider instanceof Two_Factor_Provider ) {
+			$preferred_provider = $preferred_provider->get_key();
+		}
+
+		// Default to the currently logged in provider.
+		if ( ! $preferred_provider && get_current_user_id() === $user->ID ) {
+			$session = self::get_current_user_session();
+			if ( ! empty( $session['two-factor-provider'] ) ) {
+				$preferred_provider = $session['two-factor-provider'];
+			}
+		}
+
+		if ( is_string( $preferred_provider ) ) {
+			$providers = self::get_available_providers_for_user( $user );
+			if ( ! is_wp_error( $providers ) && isset( $providers[ $preferred_provider ] ) ) {
+				return $providers[ $preferred_provider ];
+			}
+		}
+
+		return self::get_primary_provider_for_user( $user );
+	}
+
+	/**
+	 * Get the name of the primary provider selected by the user
+	 * and enabled for the user.
+	 *
+	 * @since 0.12.0
+	 *
+	 * @param WP_User|int $user User ID or instance.
+	 *
+	 * @return string|null
+	 */
+	private static function get_primary_provider_key_selected_for_user( $user ) {
+		$primary_provider    = get_user_meta( $user->ID, self::PROVIDER_USER_META_KEY, true );
+		$available_providers = self::get_available_providers_for_user( $user );
+
+		if ( is_wp_error( $available_providers ) ) {
+			return null;
+		}
+
+		if ( ! empty( $primary_provider ) && ! empty( $available_providers[ $primary_provider ] ) ) {
+			return $primary_provider;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Gets the Two-Factor Auth provider for the specified|current user.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int|WP_User $user Optional. User ID, or WP_User object of the the user. Defaults to current user.
+	 * @return object|null|WP_Error Provider instance, null if the user has none configured, or a WP_Error if the
+	 *                               user has provider(s) enabled that are no longer registered. Callers that render
+	 *                               shared admin UI (e.g. list tables) must not `wp_die()` on the WP_Error case, since
+	 *                               that would break the page for everyone, not just the affected user.
+	 */
+	public static function get_primary_provider_for_user( $user = null ) {
+		$user = self::fetch_user( $user );
+		if ( ! $user ) {
+			return null;
+		}
+
+		$providers           = self::get_supported_providers_for_user( $user );
+		$available_providers = self::get_available_providers_for_user( $user );
+
+		if ( is_wp_error( $available_providers ) ) {
+			// The user's configured methods don't exist, and there was no replacement to swap in. Bubble the
+			// error up instead of dying here — this can run from contexts (like the Users list table) where
+			// killing the whole request would break the page for an admin who isn't even the affected user.
+			return $available_providers;
+		} elseif ( empty( $available_providers ) ) {
+			return null;
+		} elseif ( 1 === count( $available_providers ) ) {
+			// If there's only one available provider, force that to be the primary.
+			$provider = key( $available_providers );
+		} else {
+			$provider = self::get_primary_provider_key_selected_for_user( $user );
+
+			// If the provider specified isn't enabled, just grab the first one that is.
+			if ( empty( $provider ) || ! isset( $available_providers[ $provider ] ) ) {
+				$provider = key( $available_providers );
+			}
+		}
+
+		/**
+		 * Filter the two-factor authentication provider used for this user.
+		 *
+		 * @since 0.2.0
+		 *
+		 * @param string $provider The provider currently being used.
+		 * @param int    $user_id  The user ID.
+		 */
+		$provider = apply_filters( 'two_factor_primary_provider_for_user', $provider, $user->ID );
+
+		if ( isset( $providers[ $provider ] ) ) {
+			return $providers[ $provider ];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Quick boolean check for whether a given user is using two-step.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int|WP_User $user Optional. User ID, or WP_User object of the the user. Defaults to current user.
+	 * @return bool
+	 */
+	public static function is_user_using_two_factor( $user = null ) {
+		$user = self::fetch_user( $user );
+		if ( ! $user ) {
+			return false;
+		}
+
+		$provider = self::get_primary_provider_for_user( $user );
+
+		/**
+		 * Filters whether two-factor authentication is required for a user.
+		 *
+		 * Return false to bypass the two-factor authentication flow for the user —
+		 * for example, for requests from trusted IP addresses. Return true to
+		 * require two-factor authentication even if the user has no provider
+		 * configured (note the login will fail in that case, as there is no
+		 * provider to authenticate against).
+		 *
+		 * @since 0.17.0
+		 *
+		 * @param bool    $is_required Whether two-factor is required for the user. Default true when the user has a primary provider.
+		 * @param WP_User $user        The user being checked.
+		 */
+		// A WP_Error means the user has a provider enabled that's no longer registered. Still treat them as
+		// "using" two-factor so the login requirement isn't dropped (failing open) just because their specific
+		// method disappeared. WP_Error is a non-null object, so !empty() already covers it.
+		return (bool) apply_filters( 'two_factor_is_required_for_user', ! empty( $provider ), $user );
+	}
+
+	/**
+	 * Handle the browser-based login.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @see https://developer.wordpress.org/reference/hooks/wp_login/
+	 *
+	 * @param string  $user_login Username.
+	 * @param WP_User $user WP_User object of the logged-in user.
+	 */
+	public static function wp_login( $user_login, $user ) {
+		if ( ! self::is_user_using_two_factor( $user->ID ) ) {
+			return;
+		}
+
+		// Invalidate the current login session to prevent from being re-used.
+		self::destroy_current_session_for_user( $user );
+
+		// Also clear the cookies which are no longer valid.
+		wp_clear_auth_cookie();
+
+		self::show_two_factor_login( $user );
+		exit;
+	}
+
+	/**
+	 * Destroy the known password-based authentication sessions for the current user.
+	 *
+	 * Is there a better way of finding the current session token without
+	 * having access to the authentication cookies which are just being set
+	 * on the first password-based authentication request.
+	 *
+	 * @since 0.5.1
+	 *
+	 * @param \WP_User $user User object.
+	 *
+	 * @return void
+	 */
+	public static function destroy_current_session_for_user( $user ) {
+		$session_manager = WP_Session_Tokens::get_instance( $user->ID );
+
+		foreach ( self::$password_auth_tokens as $auth_token ) {
+			$session_manager->destroy( $auth_token );
+		}
+	}
+
+	/**
+	 * Disable WP core login cookies for users that require second factor. Disable
+	 * authenticated API requests unless explicitly enabled for the user (disabled by default).
+	 *
+	 * @since 0.4.0
+	 *
+	 * @param WP_User|WP_Error $user Valid WP_User only if the previous filters
+	 *                                have verified and confirmed the
+	 *                                authentication credentials.
+	 *
+	 * @return WP_User|WP_Error
+	 */
+	public static function filter_authenticate( $user ) {
+		if ( $user instanceof WP_User && self::is_user_using_two_factor( $user->ID ) ) {
+			/**
+			 * Prevent WP core from sending login cookies during `wp_set_auth_cookie()` and
+			 * let two-factor do it after validating the second factor.
+			 */
+			add_filter( 'send_auth_cookies', '__return_false', PHP_INT_MAX );
+
+			// Disable authentication requests for API requests for users with two-factor enabled.
+			if ( self::is_api_request() && ! self::is_user_api_login_enabled( $user->ID ) ) {
+				return new WP_Error(
+					'invalid_application_credentials',
+					__( 'Error: API login for user disabled.', 'two-factor' )
+				);
+			}
+		}
+
+		return $user;
+	}
+
+	/**
+	 * If the user can login via API requests such as XML-RPC and REST.
+	 *
+	 * Only logins with an application password belonging to the given
+	 * user are permitted by default.
+	 *
+	 * @since 0.4.0
+	 *
+	 * @param integer $user_id User ID.
+	 *
+	 * @return boolean
+	 */
+	public static function is_user_api_login_enabled( $user_id ) {
+		/**
+		 * Allow or prevent logins without two-factor during
+		 * API requests such as XML-RPC and REST.
+		 *
+		 * @since 0.4.0
+		 *
+		 * @param boolean $enabled Whether the user can login via API requests.
+		 * @param integer $user_id User ID.
+		 */
+		return (bool) apply_filters(
+			'two_factor_user_api_login_enable',
+			in_array( (int) $user_id, self::$app_password_auth_user_ids, true ),
+			$user_id
+		);
+	}
+
+	/**
+	 * Keep track of the users authenticated via an application password
+	 * during the current request.
+	 *
+	 * @since 0.17.0
+	 *
+	 * @param WP_User $user The user authenticated via an application password.
+	 *
+	 * @return void
+	 */
+	public static function app_password_did_authenticate( $user ) {
+		if ( $user instanceof WP_User ) {
+			self::$app_password_auth_user_ids[] = (int) $user->ID;
+		}
+	}
+
+	/**
+	 * Is the current request an XML-RPC or REST request.
+	 *
+	 * @since 0.4.0
+	 *
+	 * @return boolean
+	 */
+	public static function is_api_request() {
+		if ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) {
+			return true;
+		}
+
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Display the login form.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param WP_User|false $user WP_User object of the logged-in user.
+	 */
+	public static function show_two_factor_login( $user ) {
+		if ( ! $user ) {
+			$user = wp_get_current_user();
+		}
+
+		$login_nonce = self::create_login_nonce( $user->ID );
+		if ( ! $login_nonce ) {
+			wp_die( esc_html__( 'Failed to create a login nonce.', 'two-factor' ) );
+		}
+
+		$redirect_to = isset( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : admin_url(); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Value only used for redirect; auth protected by 2FA login nonce later.
+
+		self::login_html( $user, $login_nonce['key'], $redirect_to );
+	}
+
+	/**
+	 * Displays a message informing the user that their account has had failed login attempts.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param WP_User $user WP_User object of the logged-in user.
+	 */
+	public static function maybe_show_last_login_failure_notice( $user ) {
+		$last_failed_two_factor_login = (int) get_user_meta( $user->ID, self::USER_RATE_LIMIT_KEY, true );
+		$failed_login_count           = (int) get_user_meta( $user->ID, self::USER_FAILED_LOGIN_ATTEMPTS_KEY, true );
+
+		if ( $last_failed_two_factor_login ) {
+			echo '<div id="login_notice" class="message"><strong>';
+			printf(
+				esc_html(
+					/* translators: 1: number of failed verification code attempts, 2: human-readable time since the last attempt, e.g. "5 minutes" */
+					_n(
+						'%1$s failed verification code attempt on this account. The last attempt was %2$s ago. If you did not make this attempt, someone else may know your password. Change your password after you log in.',
+						'%1$s failed verification code attempts on this account. The last attempt was %2$s ago. If you did not make these attempts, someone else may know your password. Change your password after you log in.',
+						$failed_login_count,
+						'two-factor'
+					)
+				),
+				esc_html( number_format_i18n( $failed_login_count ) ),
+				esc_html( human_time_diff( $last_failed_two_factor_login, time() ) )
+			);
+			echo '</strong></div>';
+		}
+	}
+
+	/**
+	 * Show the password reset notice if the user's password was reset.
+	 *
+	 * They were also sent an email notification in `send_password_reset_email()`, but email sent from a typical
+	 * web server is not reliable enough to trust completely.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param WP_Error $errors Error object.
+	 */
+	public static function maybe_show_reset_password_notice( $errors ) {
+		if ( 'incorrect_password' !== $errors->get_error_code() ) {
+			return $errors;
+		}
+
+		if ( ! isset( $_POST['log'] ) ) {
+			return $errors;
+		}
+
+		// Verify login form nonce when present (e.g. wp-login.php); skip only when nonce is not sent (custom login forms).
+		if ( isset( $_POST['_wpnonce'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'log-in' ) ) {
+			return $errors;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above when _wpnonce present; absent for custom login forms.
+		$user_name      = sanitize_user( wp_unslash( $_POST['log'] ) );
+		$attempted_user = get_user_by( 'login', $user_name );
+		if ( ! $attempted_user && str_contains( $user_name, '@' ) ) {
+			$attempted_user = get_user_by( 'email', $user_name );
+		}
+
+		if ( ! $attempted_user ) {
+			return $errors;
+		}
+
+		$password_was_reset = get_user_meta( $attempted_user->ID, self::USER_PASSWORD_WAS_RESET_KEY, true );
+
+		if ( ! $password_was_reset ) {
+			return $errors;
+		}
+
+		$errors->remove( 'incorrect_password' );
+		$errors->add(
+			'two_factor_password_reset',
+			sprintf(
+				/* translators: %s: URL to create a new password. */
+				__( 'Your password was reset because of too many failed Two Factor attempts. You will need to <a href="%s">create a new password</a> to regain access. Please check your email for more information.', 'two-factor' ),
+				esc_url( add_query_arg( 'action', 'lostpassword', wp_login_url() ) )
+			)
+		);
+
+		return $errors;
+	}
+
+	/**
+	 * Clear the password reset notice after the user resets their password.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param WP_User $user User object.
+	 */
+	public static function clear_password_reset_notice( $user ) {
+		delete_user_meta( $user->ID, self::USER_PASSWORD_WAS_RESET_KEY );
+	}
+
+	/**
+	 * Generates the html form for the second step of the authentication process.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param WP_User       $user WP_User object of the logged-in user.
+	 * @param string        $login_nonce A string nonce stored in usermeta.
+	 * @param string        $redirect_to The URL to which the user would like to be redirected.
+	 * @param string        $error_msg Optional. Login error message.
+	 * @param string|object $provider An override to the provider.
+	 * @param string        $action Action to perform.
+	 */
+	public static function login_html( $user, $login_nonce, $redirect_to, $error_msg = '', $provider = null, $action = 'validate_2fa' ) {
+		$provider = self::get_provider_for_user( $user, $provider );
+		if ( is_wp_error( $provider ) ) {
+			// The user's configured methods don't exist, and there was no replacement to swap in. This is the
+			// user's own login screen, so it's appropriate to stop here with a specific, actionable message.
+			wp_die( esc_html( $provider->get_error_message() ) );
+		}
+		if ( ! $provider ) {
+			wp_die( esc_html__( 'Two-factor provider not available for this user.', 'two-factor' ) );
+		}
+
+		$provider_key        = $provider->get_key();
+		$available_providers = self::get_available_providers_for_user( $user );
+
+		if ( is_wp_error( $available_providers ) ) {
+			// If it returned an error, the configured methods don't exist, and it couldn't swap in a replacement.
+			wp_die( esc_html( $available_providers->get_error_message() ) );
+		}
+
+		$backup_providers = array_diff_key( $available_providers, array( $provider_key => null ) );
+		$interim_login    = isset( $_REQUEST['interim-login'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		$rememberme = intval( self::rememberme() );
+
+		if ( ! function_exists( 'login_header' ) ) {
+			// We really should migrate login_header() out of `wp-login.php` so it can be called from an includes file.
+			require_once TWO_FACTOR_DIR . 'includes/function.login-header.php';
+		}
+
+		// Disable the language switcher.
+		add_filter( 'login_display_language_dropdown', '__return_false' );
+
+		wp_enqueue_style( 'user-edit-2fa', plugins_url( 'user-edit.css', __FILE__ ), array(), TWO_FACTOR_VERSION );
+
+		login_header();
+
+		if ( ! empty( $error_msg ) ) {
+			echo '<div id="login_error"><strong>' . esc_html( $error_msg ) . '</strong><br></div>';
+		} elseif ( 'validate_2fa' === $action ) {
+			self::maybe_show_last_login_failure_notice( $user );
+		}
+		?>
+
+		<form name="validate_2fa_form" id="loginform" action="<?php echo esc_url( self::login_url( array( 'action' => $action ), 'login_post' ) ); ?>" method="post" autocomplete="off">
+				<input type="hidden" name="provider"      id="provider"      value="<?php echo esc_attr( $provider_key ); ?>">
+				<input type="hidden" name="wp-auth-id"    id="wp-auth-id"    value="<?php echo esc_attr( (string) $user->ID ); ?>">
+				<input type="hidden" name="wp-auth-nonce" id="wp-auth-nonce" value="<?php echo esc_attr( $login_nonce ); ?>">
+				<?php if ( $interim_login ) { ?>
+					<input type="hidden" name="interim-login" value="1">
+				<?php } else { ?>
+					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>">
+				<?php } ?>
+				<input type="hidden" name="rememberme"    id="rememberme"    value="<?php echo esc_attr( (string) $rememberme ); ?>">
+
+				<?php $provider->authentication_page( $user ); ?>
+		</form>
+
+		<?php
+		$links = array();
+
+		if ( $backup_providers ) {
+			$backup_link_args = array(
+				'action'        => $action,
+				'wp-auth-id'    => $user->ID,
+				'wp-auth-nonce' => $login_nonce,
+			);
+			if ( $rememberme ) {
+				$backup_link_args['rememberme'] = $rememberme;
+			}
+			if ( $redirect_to ) {
+				$backup_link_args['redirect_to'] = $redirect_to;
+			}
+			if ( $interim_login ) {
+				$backup_link_args['interim-login'] = 1;
+			}
+
+			foreach ( $backup_providers as $backup_provider_key => $backup_provider ) {
+				$backup_link_args['provider'] = $backup_provider_key;
+				$links[]                      = array(
+					'url'   => self::login_url( $backup_link_args ),
+					'label' => $backup_provider->get_alternative_provider_label(),
+				);
+			}
+		}
+
+			/**
+			 * Filters the links displayed on the two-factor login form.
+			 *
+			 * Plugins can use this filter to modify or add links to the two-factor authentication
+			 * login form, allowing users to select backup methods for authentication or provide documentation links.
+			 *
+			 * @since 0.16.0
+			 *
+			 * @param array $links An array of links displayed on the two-factor login form, each with `url` and `label` keys.
+			 */
+			$links = apply_filters( 'two_factor_login_backup_links', $links );
+		?>
+
+		<?php if ( ! empty( $links ) ) : ?>
+			<div class="backup-methods-wrap">
+				<p>
+					<?php esc_html_e( 'Having Problems?', 'two-factor' ); ?>
+				</p>
+				<ul>
+				<?php
+				foreach ( $links as $link ) {
+					echo '<li><a href="' . esc_url( $link['url'] ) . '">' . esc_html( $link['label'] ) . '</a></li>';
+				}
+				?>
+				</ul>
+			</div>
+		<?php endif; ?>
+
+		<?php wp_enqueue_script( 'two-factor-login-authcode' ); ?>
+		<?php
+		if ( ! function_exists( 'login_footer' ) ) {
+			require_once TWO_FACTOR_DIR . 'includes/function.login-footer.php';
+		}
+
+			login_footer();
+		?>
+		<?php
+	}
+
+	/**
+	 * Generate the two-factor login form URL.
+	 *
+	 * @since 0.3.0
+	 *
+	 * @param  array  $params List of query argument pairs to add to the URL.
+	 * @param  string $scheme URL scheme context.
+	 *
+	 * @return string
+	 */
+	public static function login_url( $params = array(), $scheme = 'login' ) {
+		if ( ! is_array( $params ) ) {
+			$params = array();
+		}
+
+		$params = urlencode_deep( $params );
+
+		// Compat: Match WordPress's usage of `site_url( wp-login.php )` by always passing the action if known.
+		if ( isset( $params['action'] ) ) {
+			$url = site_url( 'wp-login.php?action=' . $params['action'], $scheme );
+		} else {
+			$url = site_url( 'wp-login.php', $scheme );
+		}
+
+		if ( $params ) {
+			$url = add_query_arg( $params, $url );
+		}
+
+		return $url;
+	}
+
+	/**
+	 * Get the hash of a nonce for storage and comparison.
+	 *
+	 * @since 0.7.2
+	 *
+	 * @param array $nonce Nonce array to be hashed. ⚠️ This must contain user ID and expiration,
+	 *                     to guarantee the nonce only works for the intended user during the
+	 *                     intended time window.
+	 *
+	 * @return string|false
+	 */
+	protected static function hash_login_nonce( $nonce ) {
+		$message = wp_json_encode( $nonce );
+
+		if ( ! $message ) {
+			return false;
+		}
+
+		return wp_hash( $message, 'nonce' );
+	}
+
+	/**
+	 * Create the login nonce.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int $user_id User ID.
+	 * @return array|false
+	 */
+	public static function create_login_nonce( $user_id ) {
+		$login_nonce = array(
+			'user_id'    => $user_id,
+			'expiration' => time() + ( 10 * MINUTE_IN_SECONDS ),
+		);
+
+		try {
+			$login_nonce['key'] = bin2hex( random_bytes( 32 ) );
+		} catch ( Exception $ex ) {
+			return false;
+		}
+
+		// Store the nonce hashed to avoid leaking it via database access.
+		$hashed_key = self::hash_login_nonce( $login_nonce );
+
+		if ( $hashed_key ) {
+			$login_nonce_stored = array(
+				'expiration' => $login_nonce['expiration'],
+				'key'        => $hashed_key,
+			);
+
+			if ( update_user_meta( $user_id, self::USER_META_NONCE_KEY, $login_nonce_stored ) ) {
+				return $login_nonce;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Delete the login nonce.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int $user_id User ID.
+	 * @return bool
+	 */
+	public static function delete_login_nonce( $user_id ) {
+		return delete_user_meta( $user_id, self::USER_META_NONCE_KEY );
+	}
+
+	/**
+	 * Verify the login nonce.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int    $user_id User ID.
+	 * @param string $nonce Login nonce.
+	 * @return bool
+	 */
+	public static function verify_login_nonce( $user_id, $nonce ) {
+		$login_nonce = get_user_meta( $user_id, self::USER_META_NONCE_KEY, true );
+
+		if ( ! $login_nonce || empty( $login_nonce['key'] ) || empty( $login_nonce['expiration'] ) ) {
+			self::log_login_nonce_failure( $user_id, 'no_nonce_stored' );
+
+			return false;
+		}
+
+		/*
+		 * An expired nonce can never succeed again, whatever was presented alongside it,
+		 * so clear it before looking at the key. Deleting it here is not destructive --
+		 * it was already dead -- and it keeps abandoned logins from leaving dead weight
+		 * in usermeta until the user's next password success overwrites it.
+		 */
+		if ( time() >= $login_nonce['expiration'] ) {
+			self::log_login_nonce_failure( $user_id, 'expired' );
+			self::delete_login_nonce( $user_id );
+
+			return false;
+		}
+
+		$unverified_nonce = array(
+			'user_id'    => $user_id,
+			'expiration' => $login_nonce['expiration'],
+			'key'        => $nonce,
+		);
+
+		$unverified_hash = self::hash_login_nonce( $unverified_nonce );
+
+		if ( $unverified_hash && hash_equals( $login_nonce['key'], $unverified_hash ) ) {
+			return true;
+		}
+
+		/*
+		 * A value we never issued, presented against a nonce that is still live. Leave it
+		 * in place: discarding it would let an unauthenticated request end someone else's
+		 * in-progress login, and it buys no brute-force resistance -- the key is 256 bits
+		 * of random_bytes(), and a failed second factor rotates it in
+		 * validate_login_form_2fa() regardless.
+		 */
+		self::log_login_nonce_failure( $user_id, 'mismatch' );
+
+		return false;
+	}
+
+	/**
+	 * Record a failed login nonce verification.
+	 *
+	 * A login nonce is only ever handed out by the plugin itself, so a request that
+	 * presents one that does not verify is unexpected. A handful of these are routine --
+	 * a stale browser tab, the back button, or two sessions racing each other -- but a
+	 * sustained run of them against one account is worth an administrator's attention,
+	 * and until now they left no trace at all: the request is simply redirected away.
+	 *
+	 * The presented value is never written to the log; only the reason it was rejected.
+	 *
+	 * @since 0.17.0
+	 *
+	 * @param int    $user_id The user ID the nonce was presented for.
+	 * @param string $reason  Why verification failed. One of 'no_nonce_stored' (no
+	 *                        pending login for this user), 'expired' (correct value,
+	 *                        past its expiration), or 'mismatch' (value did not match).
+	 * @return void
+	 */
+	protected static function log_login_nonce_failure( $user_id, $reason ) {
+		/**
+		 * Fires when a login nonce fails verification.
+		 *
+		 * Useful for routing these into an audit log, an intrusion detection system, or
+		 * a rate limiter. Fires on every failure, including ones that are not written to
+		 * the PHP error log.
+		 *
+		 * @since 0.17.0
+		 *
+		 * @param int    $user_id The user ID the nonce was presented for.
+		 * @param string $reason  One of 'no_nonce_stored', 'expired', or 'mismatch'.
+		 */
+		do_action( 'two_factor_login_nonce_failed', $user_id, $reason );
+
+		/*
+		 * Only 'expired' and 'mismatch' are written to the error log. Both require a nonce
+		 * to already be stored for the user, which only happens after a successful password
+		 * check, so their volume is bounded by real login activity.
+		 *
+		 * 'no_nonce_stored' is not. Any unauthenticated request carrying a guessed user ID
+		 * reaches it, so logging it by default would hand anyone an unbounded write to the
+		 * error log -- and it is the least informative of the three, firing for every stale
+		 * bookmark and resubmitted form. Sites that want it can opt in via the filter below.
+		 */
+		$log_by_default = in_array( $reason, array( 'expired', 'mismatch' ), true );
+
+		/**
+		 * Filters whether a failed login nonce verification is written to the PHP error log.
+		 *
+		 * Defaults to true for 'expired' and 'mismatch', and false for 'no_nonce_stored'.
+		 * Sites that would rather not carry the log volume, or that handle the
+		 * `two_factor_login_nonce_failed` action themselves, can return false for everything.
+		 *
+		 * @since 0.17.0
+		 *
+		 * @param bool   $log     Whether to write this failure to the error log.
+		 * @param int    $user_id The user ID the nonce was presented for.
+		 * @param string $reason  One of 'no_nonce_stored', 'expired', or 'mismatch'.
+		 */
+		if ( ! apply_filters( 'two_factor_log_login_nonce_failures', $log_by_default, $user_id, $reason ) ) {
+			return;
+		}
+
+		// Unreliable behind a proxy or load balancer; hook the action above for better provenance.
+		$remote_addr = isset( $_SERVER['REMOTE_ADDR'] ) ? filter_var( wp_unslash( $_SERVER['REMOTE_ADDR'] ), FILTER_VALIDATE_IP ) : false; // phpcs:ignore WordPressVIPMinimum.Variables.ServerVariables.UserControlledHeaders, WordPressVIPMinimum.Variables.RestrictedVariables.cache_constraints___SERVER__REMOTE_ADDR__ -- Validated as an IP, and only ever written to the log; not used for caching or authorization.
+
+		error_log( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Deliberate security diagnostic; opt out via the filter above.
+			sprintf(
+				'Two-Factor: login nonce verification failed for user %1$d (reason: %2$s, remote address: %3$s).',
+				$user_id,
+				$reason,
+				$remote_addr ? $remote_addr : 'unknown'
+			)
+		);
+	}
+
+	/**
+	 * Determine the minimum wait between two factor attempts for a user.
+	 *
+	 * This implements an increasing backoff, requiring an attacker to wait longer
+	 * each time to attempt to brute-force the login.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param WP_User $user The user being operated upon.
+	 * @return int Time delay in seconds between login attempts.
+	 */
+	public static function get_user_time_delay( $user ) {
+		/**
+		 * Filter the minimum time duration between two factor attempts.
+		 *
+		 * @since 0.8.0
+		 *
+		 * @param int $rate_limit The number of seconds between two factor attempts.
+		 */
+		$rate_limit = apply_filters( 'two_factor_rate_limit', 1 );
+
+		$user_failed_logins = get_user_meta( $user->ID, self::USER_FAILED_LOGIN_ATTEMPTS_KEY, true );
+		if ( $user_failed_logins ) {
+			$rate_limit = pow( 2, $user_failed_logins ) * $rate_limit;
+
+			/**
+			 * Filter the maximum time duration a user may be locked out from retrying two factor authentications.
+			 *
+			 * @since 0.8.0
+			 *
+			 * @param int $max_rate_limit The maximum number of seconds a user might be locked out for. Default 15 minutes.
+			 */
+			$max_rate_limit = apply_filters( 'two_factor_max_rate_limit', 15 * MINUTE_IN_SECONDS );
+
+			$rate_limit = min( $max_rate_limit, $rate_limit );
+		}
+
+		/**
+		 * Filters the per-user time duration between two factor login attempts.
+		 *
+		 * @since 0.8.0
+		 *
+		 * @param int     $rate_limit The number of seconds between two factor attempts.
+		 * @param WP_User $user       The user attempting to login.
+		 */
+		return apply_filters( 'two_factor_user_rate_limit', $rate_limit, $user );
+	}
+
+	/**
+	 * Determine if a time delay between user two factor login attempts should be triggered.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param WP_User $user The User.
+	 * @return bool True if rate limit is okay, false if not.
+	 */
+	public static function is_user_rate_limited( $user ) {
+		$rate_limit  = self::get_user_time_delay( $user );
+		$last_failed = get_user_meta( $user->ID, self::USER_RATE_LIMIT_KEY, true );
+
+		$rate_limited = false;
+		if ( $last_failed && $last_failed + $rate_limit > time() ) {
+			$rate_limited = true;
+		}
+
+		/**
+		 * Filter whether this login attempt is rate limited or not.
+		 *
+		 * This allows for dedicated plugins to rate limit two factor login attempts
+		 * based on their own rules.
+		 *
+		 * @since 0.8.0
+		 *
+		 * @param bool    $rate_limited Whether the user login is rate limited.
+		 * @param WP_User $user         The user attempting to login.
+		 */
+		return apply_filters( 'two_factor_is_user_rate_limited', $rate_limited, $user );
+	}
+
+	/**
+	 * Clear the login rate-limit and failed-attempt counter for a user.
+	 *
+	 * Used by the WP-CLI `unlock` and `disable` (all) commands so there is one
+	 * tested code path for clearing throttle state rather than deleting the meta
+	 * keys directly from each call site.
+	 *
+	 * @since 0.17.0
+	 *
+	 * @param WP_User $user The user whose throttle state should be cleared.
+	 */
+	public static function clear_login_rate_limit( $user ) {
+		delete_user_meta( $user->ID, self::USER_RATE_LIMIT_KEY );
+		delete_user_meta( $user->ID, self::USER_FAILED_LOGIN_ATTEMPTS_KEY );
+	}
+
+	/**
+	 * Determine if the current user session is logged in with 2FA.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @return int|false The last time the two-factor was validated on success, false if not currently using a 2FA session.
+	 */
+	public static function is_current_user_session_two_factor() {
+		$session = self::get_current_user_session();
+
+		if ( empty( $session['two-factor-login'] ) ) {
+			return false;
+		}
+
+		return (int) $session['two-factor-login'];
+	}
+
+	/**
+	 * Determine if the current user session can update Two-Factor settings.
+	 *
+	 * @since 0.9.0
+	 * @param string $context The context in use, 'display' or 'save'. Save has twice the grace time.
+	 *
+	 * @return bool
+	 */
+	public static function current_user_can_update_two_factor_options( $context = 'display' ) {
+		$user_id               = get_current_user_id();
+		$is_two_factor_session = self::is_current_user_session_two_factor();
+
+		// If the user isn't logged in, bail.
+		if ( ! $user_id ) {
+			return false;
+		}
+
+		// If the current user is not using two-factor, they can adjust the settings.
+		if ( ! self::is_user_using_two_factor( $user_id ) ) {
+			return true;
+		}
+
+		// Else, if the session is not two-factor, the user should not be able to update settings.
+		if ( ! $is_two_factor_session ) {
+			return false;
+		}
+
+		/**
+		 * Filter the grace time for two factor revalidation.
+		 *
+		 * Return a falsey value (false, 0) if you wish to never require revalidation.
+		 *
+		 * @param int    $two_factor_revalidate_time The grace time between last validation time and when it'll be accepted. Default 10 minutes (in seconds).
+		 * @param int    $user_id                    The user ID.
+		 * @param string $context                    The context in use, 'display' or 'save'. Save has twice the grace time.
+		 */
+		$two_factor_revalidate_time = apply_filters( 'two_factor_revalidate_time', 10 * MINUTE_IN_SECONDS, $user_id, $context );
+
+		if ( 'save' === $context ) {
+			$two_factor_revalidate_time *= 2;
+		}
+
+		// If the revalidate time is falsey, don't enable revalidation.
+		if ( ! $two_factor_revalidate_time ) {
+			return true;
+		}
+
+		// If the user last-2fa'd within the last 10 (or 20) minutes, allow.
+		$seconds_ago = time() - $is_two_factor_session;
+		if ( $seconds_ago <= $two_factor_revalidate_time ) {
+			return true;
+		}
+
+		// Otherwise the user cannot update the options.
+		return false;
+	}
+
+	/**
+	 * Validate that the current user can edit the specified user. If two-factor is required by the account, also verify that it's within the revalidation grace period.
+	 *
+	 * @since 0.9.0
+	 * @param int $user_id The user ID being updated.
+	 *
+	 * @return bool|\WP_Error
+	 */
+	public static function rest_api_can_edit_user_and_update_two_factor_options( $user_id ) {
+		if ( ! current_user_can( 'edit_user', $user_id ) ) {
+			return false;
+		}
+
+		if ( ! self::current_user_can_update_two_factor_options( 'save' ) ) {
+			return new WP_Error( 'revalidation_required', __( 'Two Factor Revalidation required.', 'two-factor' ) );
+		}
+
+		/**
+		 * Filters whether the current user can edit another user's two-factor options via the REST API.
+		 *
+		 * @since 0.7.0
+		 *
+		 * @param bool $can_edit Whether the user can edit the two-factor options. Default true.
+		 * @param int  $user_id  The user ID being updated.
+		 */
+		return apply_filters( 'two_factor_rest_api_can_edit_user', true, $user_id );
+	}
+
+	/**
+	 * Login form validation handler.
+	 *
+	 * @since 0.2.0
+	 */
+	public static function login_form_validate_2fa() {
+		$wp_auth_id      = ! empty( $_REQUEST['wp-auth-id'] ) ? absint( $_REQUEST['wp-auth-id'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in validate_login_form_2fa() before any use.
+		$nonce           = ( isset( $_REQUEST['wp-auth-nonce'] ) && is_scalar( $_REQUEST['wp-auth-nonce'] ) ) ? sanitize_text_field( wp_unslash( (string) $_REQUEST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in validate_login_form_2fa() before any use.
+		$provider        = ! empty( $_REQUEST['provider'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['provider'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in validate_login_form_2fa() before any use.
+		$redirect_to     = ! empty( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in validate_login_form_2fa() before any use.
+		$is_post_request = isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === strtoupper( $_SERVER['REQUEST_METHOD'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- REQUEST_METHOD is not user input.
+		$user            = get_user_by( 'id', $wp_auth_id );
+
+		if ( ! $wp_auth_id || ! $nonce || ! $user ) {
+			return;
+		}
+
+		self::validate_login_form_2fa( $user, $nonce, $provider, $redirect_to, $is_post_request );
+		exit;
+	}
+
+	/**
+	 * Login form validation.
+	 *
+	 * This function exists for unit testing, as `exit` prevents testing.
+	 * This function expects the caller exiting after calling.
+	 *
+	 * @since 0.9.0
+	 * @since 0.17.0 Renamed from `_login_form_validate_2fa()`.
+	 *
+	 * @param WP_User $user            The WP_User instance.
+	 * @param string  $nonce           The nonce provided.
+	 * @param string  $provider        The provider to use, if known.
+	 * @param string  $redirect_to     The redirection location.
+	 * @param bool    $is_post_request Whether the incoming request was a POST request or not.
+	 * @return void
+	 */
+	public static function validate_login_form_2fa( $user, $nonce = '', $provider = '', $redirect_to = '', $is_post_request = false ) {
+		// Validate the request.
+		if ( true !== self::verify_login_nonce( $user->ID, $nonce ) ) {
+			wp_safe_redirect( home_url() );
+			exit;
+		}
+
+		$provider = self::get_provider_for_user( $user, $provider );
+		if ( is_wp_error( $provider ) ) {
+			// The user's configured methods don't exist, and there was no replacement to swap in. This is the
+			// user's own login attempt, so it's appropriate to stop here with a specific, actionable message.
+			wp_die( esc_html( $provider->get_error_message() ) );
+		}
+		if ( ! $provider ) {
+			wp_die( esc_html__( 'Two-factor provider not available for this user.', 'two-factor' ) );
+		}
+
+		// Run the provider processing.
+		$result = self::process_provider( $provider, $user, $is_post_request );
+		if ( true !== $result ) {
+			$error = '';
+			if ( is_wp_error( $result ) ) {
+				do_action( 'wp_login_failed', $user->user_login, $result ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core WordPress action.
+
+				$error = $result->get_error_message();
+			}
+
+			$login_nonce = self::create_login_nonce( $user->ID );
+			if ( ! $login_nonce ) {
+				wp_die( esc_html__( 'Failed to create a login nonce.', 'two-factor' ) );
+			}
+
+			self::login_html( $user, $login_nonce['key'], $redirect_to, $error, $provider );
+			return;
+		}
+
+		self::delete_login_nonce( $user->ID );
+		delete_user_meta( $user->ID, self::USER_RATE_LIMIT_KEY );
+		delete_user_meta( $user->ID, self::USER_FAILED_LOGIN_ATTEMPTS_KEY );
+
+		$rememberme = false;
+		if ( ! empty( $_REQUEST['rememberme'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Request read only after successful verify_login_nonce() in this request.
+			$rememberme = true;
+		}
+
+		$session_information_callback = static function ( $session, $user_id ) use ( $provider, $user ) {
+			if ( $user->ID === $user_id ) {
+				$session['two-factor-login']    = time();
+				$session['two-factor-provider'] = $provider->get_key();
+			}
+
+			return $session;
+		};
+
+		add_filter( 'attach_session_information', $session_information_callback, 10, 2 );
+
+		/*
+		 * NOTE: This filter removal is not normally required, this is included for protection against
+		 * a plugin/two factor provider which runs the `authenticate` filter during it's validation.
+		 * Such a plugin would cause self::filter_authenticate() to run and add this filter.
+		 */
+		remove_filter( 'send_auth_cookies', '__return_false', PHP_INT_MAX );
+
+		wp_set_auth_cookie( $user->ID, $rememberme );
+
+		/**
+		 * Fires after a user has been authenticated via two-factor.
+		 *
+		 * @since 0.5.2
+		 *
+		 * @param WP_User               $user     The authenticated user.
+		 * @param Two_Factor_Provider $provider The two-factor provider used for authentication.
+		 */
+		do_action( 'two_factor_user_authenticated', $user, $provider );
+
+		remove_filter( 'attach_session_information', $session_information_callback );
+
+		// Must be global because that's how login_header() uses it.
+		global $interim_login;
+		$interim_login = isset( $_REQUEST['interim-login'] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited,WordPress.Security.NonceVerification.Recommended
+
+		if ( $interim_login ) {
+			$customize_login = isset( $_REQUEST['customize-login'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Request read only after successful verify_login_nonce() in this request.
+			if ( $customize_login ) {
+				wp_enqueue_script( 'customize-base' );
+				wp_add_inline_script(
+					'customize-base',
+					'setTimeout( function(){ new wp.customize.Messenger({ url: ' . wp_json_encode( esc_url( wp_customize_url() ) ) . ', channel: \'login\' }).send(\'login\') }, 1000 );'
+				);
+			}
+			$message       = '<p class="message">' . __( 'You have logged in successfully.', 'two-factor' ) . '</p>';
+			$interim_login = 'success'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			login_header( '', $message );
+			?>
+			</div>
+			<?php
+			/** This action is documented in wp-login.php */
+			do_action( 'login_footer' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core WordPress action.
+			?>
+			</body></html>
+			<?php
+			return;
+		}
+
+		$redirect_to = apply_filters( 'login_redirect', $redirect_to, $redirect_to, $user ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core WordPress filter.
+		wp_safe_redirect( $redirect_to );
+		exit;
+	}
+
+	/**
+	 * Backward-compatible wrapper for the old login form validation method name.
+	 *
+	 * This method is kept for third-party code that may still call the previous
+	 * public static method directly.
+	 *
+	 * @since 0.9.0
+	 * @deprecated 0.17.0 Use validate_login_form_2fa() instead.
+	 *
+	 * @param WP_User $user            The WP_User instance.
+	 * @param string  $nonce           The nonce provided.
+	 * @param string  $provider        The provider to use, if known.
+	 * @param string  $redirect_to     The redirection location.
+	 * @param bool    $is_post_request Whether the incoming request was a POST request or not.
+	 * @return void
+	 */
+	public static function _login_form_validate_2fa( $user, $nonce = '', $provider = '', $redirect_to = '', $is_post_request = false ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- Backward-compatible wrapper for the legacy public method name.
+		self::validate_login_form_2fa( $user, $nonce, $provider, $redirect_to, $is_post_request );
+	}
+
+
+	/**
+	 * Display the "Revalidate Two Factor" page.
+	 *
+	 * @since 0.9.0
+	 */
+	public static function login_form_revalidate_2fa() {
+		$nonce           = ( isset( $_REQUEST['wp-auth-nonce'] ) && is_scalar( $_REQUEST['wp-auth-nonce'] ) ) ? sanitize_text_field( wp_unslash( (string) $_REQUEST['wp-auth-nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in revalidate_login_form_2fa() for POST before processing.
+		$provider        = ! empty( $_REQUEST['provider'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['provider'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in revalidate_login_form_2fa() for POST before processing.
+		$redirect_to     = ! empty( $_REQUEST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ) : admin_url(); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verified in revalidate_login_form_2fa() for POST before processing.
+		$is_post_request = isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === strtoupper( $_SERVER['REQUEST_METHOD'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- REQUEST_METHOD is not user input.
+
+		self::revalidate_login_form_2fa( $nonce, $provider, $redirect_to, $is_post_request );
+		exit;
+	}
+
+	/**
+	 * Revalidate form validation.
+	 *
+	 * This function exists for unit testing, as `exit` prevents testing.
+	 * This function expects the caller exiting after calling.
+	 *
+	 * @since 0.9.0
+	 * @since 0.17.0 Renamed from `_login_form_revalidate_2fa()`.
+	 *
+	 * @param string $nonce           The nonce passed with the request.
+	 * @param string $provider        The provider to use, if known.
+	 * @param string $redirect_to     The redirection location.
+	 * @param bool   $is_post_request Whether the incoming request was a POST request or not.
+	 * @return void
+	 */
+	public static function revalidate_login_form_2fa( $nonce = '', $provider = '', $redirect_to = '', $is_post_request = false ) {
+		if ( ! is_user_logged_in() ) {
+			wp_safe_redirect( home_url() );
+			exit;
+		}
+
+		$user = wp_get_current_user();
+
+		// Validate the nonce for POST requests. GET requests do not perform actions, and such do not require the nonce (such as the initial request).
+		if ( $is_post_request && ! wp_verify_nonce( $nonce, 'two_factor_revalidate_' . $user->ID ) ) {
+			wp_safe_redirect( home_url() );
+			exit;
+		}
+
+		$provider = self::get_provider_for_user( $user, $provider );
+		if ( is_wp_error( $provider ) ) {
+			// The user's configured methods don't exist, and there was no replacement to swap in. This is the
+			// user's own session revalidation, so it's appropriate to stop here with a specific, actionable message.
+			wp_die( esc_html( $provider->get_error_message() ) );
+		}
+		if ( ! $provider ) {
+			wp_die( esc_html__( 'Two-factor provider not available for this user.', 'two-factor' ) );
+		}
+
+		// Run the provider processing.
+		$result = self::process_provider( $provider, $user, $is_post_request );
+		if ( true !== $result ) {
+			$error = '';
+			if ( is_wp_error( $result ) ) {
+				do_action( 'wp_login_failed', $user->user_login, $result ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core WordPress action.
+
+				$error = $result->get_error_message();
+			}
+
+			$nonce = wp_create_nonce( 'two_factor_revalidate_' . $user->ID );
+
+			self::login_html( $user, $nonce, $redirect_to, $error, $provider, 'revalidate_2fa' );
+			return;
+		}
+
+		// Update the session metadata with the revalidation details.
+		self::update_current_user_session(
+			array(
+				'two-factor-provider' => $provider->get_key(),
+				'two-factor-login'    => time(),
+			)
+		);
+
+		/**
+		 * Fires after a user has been revalidated via two-factor.
+		 *
+		 * @since 0.8.0
+		 *
+		 * @param WP_User               $user     The revalidated user.
+		 * @param Two_Factor_Provider $provider The two-factor provider used for revalidation.
+		 */
+		do_action( 'two_factor_user_revalidated', $user, $provider );
+
+		// Must be global because that's how login_header() uses it.
+		global $interim_login;
+		$interim_login = isset( $_REQUEST['interim-login'] ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited,WordPress.Security.NonceVerification.Recommended
+
+		if ( $interim_login ) {
+			$message       = '<p class="message">' . __( 'You have revalidated successfully.', 'two-factor' ) . '</p>';
+			$interim_login = 'success'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			login_header( '', $message );
+			?>
+			</div>
+			<?php
+			/** This action is documented in wp-login.php */
+			do_action( 'login_footer' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core WordPress action.
+			?>
+			</body></html>
+			<?php
+			return;
+		}
+
+		$redirect_to = apply_filters( 'login_redirect', $redirect_to, $redirect_to, $user ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core WordPress filter.
+		wp_safe_redirect( $redirect_to );
+		exit;
+	}
+
+	/**
+	 * Backward-compatible wrapper for the old revalidation method name.
+	 *
+	 * This method is kept for third-party code that may still call the previous
+	 * public static method directly.
+	 *
+	 * @since 0.9.0
+	 * @deprecated 0.17.0 Use revalidate_login_form_2fa() instead.
+	 *
+	 * @param string $nonce           The nonce passed with the request.
+	 * @param string $provider        The provider to use, if known.
+	 * @param string $redirect_to     The redirection location.
+	 * @param bool   $is_post_request Whether the incoming request was a POST request or not.
+	 * @return void
+	 */
+	public static function _login_form_revalidate_2fa( $nonce = '', $provider = '', $redirect_to = '', $is_post_request = false ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore -- Backward-compatible wrapper for the legacy public method name.
+		self::revalidate_login_form_2fa( $nonce, $provider, $redirect_to, $is_post_request );
+	}
+
+	/**
+	 * Process the 2FA provider authentication.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param object|null $provider        The Two Factor Provider.
+	 * @param WP_User     $user            The user being authenticated.
+	 * @param bool        $is_post_request Whether the request is a POST request.
+	 * @return false|WP_Error|true WP_Error when an error occurs, true when the user is authenticated, false if no action occurred.
+	 */
+	public static function process_provider( $provider, $user, $is_post_request ) {
+		if ( ! $provider ) {
+			return new WP_Error(
+				'two_factor_provider_missing',
+				esc_html__( 'Two-factor provider not available for this user.', 'two-factor' )
+			);
+		}
+
+		// Allow the provider to re-send codes, etc.
+		if ( true === $provider->pre_process_authentication( $user ) ) {
+			return false;
+		}
+
+		// If it's not a POST request, there's no processing to perform.
+		if ( ! $is_post_request ) {
+			return false;
+		}
+
+		// Rate limit two factor authentication attempts.
+		if ( true === self::is_user_rate_limited( $user ) ) {
+			$time_delay = self::get_user_time_delay( $user );
+			$last_login = get_user_meta( $user->ID, self::USER_RATE_LIMIT_KEY, true );
+
+			return new WP_Error(
+				'two_factor_too_fast',
+				sprintf(
+					/* translators: %s: human-readable time delay until another attempt can be made. */
+					__( 'ERROR: Too many invalid verification codes, you can try again in %s. This limit protects your account against automated attacks.', 'two-factor' ),
+					human_time_diff( $last_login + $time_delay )
+				)
+			);
+		}
+
+		// Ask the provider to verify the second factor.
+		if ( true !== $provider->validate_authentication( $user ) ) {
+			// Store the last time a failed login occurred.
+			update_user_meta( $user->ID, self::USER_RATE_LIMIT_KEY, time() );
+
+			// Store the number of failed login attempts.
+			update_user_meta( $user->ID, self::USER_FAILED_LOGIN_ATTEMPTS_KEY, 1 + (int) get_user_meta( $user->ID, self::USER_FAILED_LOGIN_ATTEMPTS_KEY, true ) );
+
+			if ( ! is_user_logged_in() && self::should_reset_password( $user->ID ) ) {
+				self::reset_compromised_password( $user );
+				self::send_password_reset_emails( $user );
+				self::show_password_reset_error();
+				exit;
+			}
+
+			return new WP_Error(
+				'two_factor_invalid',
+				__( 'ERROR: Invalid verification code.', 'two-factor' )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Determine if the user's password should be reset.
+	 *
+	 * @param int $user_id User ID.
+	 * @since 0.8.0
+	 *
+	 * @return bool
+	 */
+	public static function should_reset_password( $user_id ) {
+		$failed_attempts = (int) get_user_meta( $user_id, self::USER_FAILED_LOGIN_ATTEMPTS_KEY, true );
+
+		/**
+		 * Filters the maximum number of failed attempts on a 2nd factor before the user's
+		 * password will be reset. After a reasonable number of attempts, it's safe to assume
+		 * that the password has been compromised and an attacker is trying to brute force the 2nd
+		 * factor.
+		 *
+		 * `get_user_time_delay()` mitigates brute force attempts, but many 2nd factors --
+		 * like TOTP and backup codes -- are very weak on their own, so it's not safe to give
+		 * attackers unlimited attempts. Setting this to a very large number is strongly
+		 * discouraged.
+		 *
+		 * @since 0.8.0
+		 *
+		 * @param int $limit The number of attempts before the password is reset.
+		 */
+		$failed_attempt_limit = apply_filters( 'two_factor_failed_attempt_limit', 30 );
+
+		return $failed_attempts >= $failed_attempt_limit;
+	}
+
+	/**
+	 * Reset a compromised password.
+	 *
+	 * If we know that the the password is compromised, we have the responsibility to reset it and inform the
+	 * user. `get_user_time_delay()` mitigates brute force attempts, but this acts as an extra layer of defense
+	 * which guarantees that attackers can't brute force it (unless they compromise the new password).
+	 *
+	 * @param WP_User $user The user who failed to login.
+	 *
+	 * @since 0.8.0
+	 */
+	public static function reset_compromised_password( $user ) {
+		// Unhook because `wp_password_change_notification()` wouldn't notify the site admin when
+		// their password is compromised.
+		remove_action( 'after_password_reset', 'wp_password_change_notification' );
+		reset_password( $user, wp_generate_password( 25 ) );
+		update_user_meta( $user->ID, self::USER_PASSWORD_WAS_RESET_KEY, true );
+		add_action( 'after_password_reset', 'wp_password_change_notification' );
+
+		self::delete_login_nonce( $user->ID );
+		delete_user_meta( $user->ID, self::USER_RATE_LIMIT_KEY );
+		delete_user_meta( $user->ID, self::USER_FAILED_LOGIN_ATTEMPTS_KEY );
+	}
+
+	/**
+	 * Notify the user and admin that a password was reset for being compromised.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param WP_User $user The user whose password should be reset.
+	 */
+	public static function send_password_reset_emails( $user ) {
+		self::notify_user_password_reset( $user );
+
+		/**
+		 * Filters whether or not to email the site admin when a user's password has been
+		 * compromised and reset.
+		 *
+		 * @since 0.8.0
+		 *
+		 * @param bool $reset `true` to notify the admin, `false` to not notify them.
+		 */
+		$notify_admin = apply_filters( 'two_factor_notify_admin_user_password_reset', true );
+		$admin_email  = get_option( 'admin_email' );
+
+		if ( $notify_admin && $admin_email !== $user->user_email ) {
+			self::notify_admin_user_password_reset( $user );
+		}
+	}
+
+	/**
+	 * Notify the user that their password has been compromised and reset.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param WP_User $user The user to notify.
+	 *
+	 * @return bool `true` if the email was sent, `false` if it failed.
+	 */
+	public static function notify_user_password_reset( $user ) {
+		$user_message = sprintf(
+			/* translators: 1: username, 2: site URL, 3: URL to password best-practices article, 4: URL to reset password */
+			__(
+				'Hello %1$s, an unusually high number of failed login attempts have been detected on your account at %2$s.
+				These attempts successfully entered your password, and were only blocked because they failed to enter your second authentication factor. Despite not being able to access your account, this behavior indicates that the attackers have compromised your password. The most common reasons for this are that your password was easy to guess, or was reused on another site which has been compromised.
+				To protect your account, your password has been reset, and you will need to create a new one. For advice on setting a strong password, please read %3$s
+				To pick a new password, please visit %4$s
+				This is an automated notification. If you would like to speak to a site administrator, please contact them directly.',
+				'two-factor'
+			),
+			esc_html( $user->user_login ),
+			home_url(),
+			'https://wordpress.org/documentation/article/password-best-practices/',
+			esc_url( add_query_arg( 'action', 'lostpassword', wp_login_url() ) )
+		);
+		$user_message = str_replace( "\t", '', $user_message );
+
+		return wp_mail( $user->user_email, __( 'Your password was compromised and has been reset', 'two-factor' ), $user_message ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail -- Plugin sends a single transactional security email to the affected user.
+	}
+
+	/**
+	 * Notify the admin that a user's password was compromised and reset.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param WP_User $user The user whose password was reset.
+	 *
+	 * @return bool `true` if the email was sent, `false` if it failed.
+	 */
+	public static function notify_admin_user_password_reset( $user ) {
+		$admin_email = get_option( 'admin_email' );
+		$subject     = sprintf(
+			/* translators: %s: username */
+			__( 'Compromised password for %s has been reset', 'two-factor' ),
+			esc_html( $user->user_login )
+		);
+
+		$message = sprintf(
+			/* translators: 1: username, 2: user ID, 3: URL to developer docs */
+			__(
+				'Hello, this is a notice from the Two Factor plugin to inform you that an unusually high number of failed login attempts have been detected on the %1$s account (ID %2$d).
+		        Those attempts successfully entered the user\'s password, and were only blocked because they entered invalid second authentication factors.
+		        To protect their account, the password has automatically been reset, and they have been notified that they will need to create a new one.
+		        If you do not wish to receive these notifications, you can disable them with the `two_factor_notify_admin_user_password_reset` filter. See %3$s for more information.
+				Thank you',
+				'two-factor'
+			),
+			esc_html( $user->user_login ),
+			$user->ID,
+			'https://developer.wordpress.org/plugins/hooks/'
+		);
+		$message = str_replace( "\t", '', $message );
+
+		return wp_mail( $admin_email, $subject, $message ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.wp_mail_wp_mail -- Plugin sends a single transactional security email to the site admin.
+	}
+
+	/**
+	 * Show the password reset error when on the login screen.
+	 *
+	 * @since 0.8.0
+	 */
+	public static function show_password_reset_error() {
+		$error = new WP_Error(
+			'too_many_attempts',
+			sprintf(
+				'<p>%s</p>
+				<p style="margin-top: 1em;">%s</p>',
+				__( 'There have been too many failed two-factor authentication attempts, which often indicates that the password has been compromised. The password has been reset in order to protect the account.', 'two-factor' ),
+				__( 'If you are the owner of this account, please check your email for instructions on regaining access.', 'two-factor' )
+			)
+		);
+
+		login_header( __( 'Password Reset', 'two-factor' ), '', $error );
+		login_footer();
+	}
+
+	/**
+	 * Filter the columns on the Users admin screen.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param  array $columns Available columns.
+	 * @return array          Updated array of columns.
+	 */
+	public static function filter_manage_users_columns( array $columns ) {
+		$columns['two-factor'] = __( 'Two-Factor', 'two-factor' );
+		return $columns;
+	}
+
+	/**
+	 * Output the 2FA column data on the Users screen.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param  string $output      The column output.
+	 * @param  string $column_name The column ID.
+	 * @param  int    $user_id     The user ID.
+	 * @return string              The column output.
+	 */
+	public static function manage_users_custom_column( $output, $column_name, $user_id ) {
+
+		if ( 'two-factor' !== $column_name ) {
+			return $output;
+		}
+
+		$provider = self::get_primary_provider_for_user( $user_id );
+
+		if ( is_wp_error( $provider ) ) {
+			// The user has a provider enabled that's no longer registered on the site. Show a clear,
+			// non-fatal indicator instead of erroring out — this must never wp_die(), since that would
+			// truncate the Users list table for every admin viewing the page, not just this one user's row.
+			return sprintf( '<span class="dashicons-before dashicons-warning">%s</span>', esc_html__( 'Error: legacy 2FA method', 'two-factor' ) );
+		}
+
+		if ( ! $provider ) {
+			return sprintf( '<span class="dashicons-before dashicons-no-alt">%s</span>', esc_html__( 'Disabled', 'two-factor' ) );
+		}
+
+		return esc_html( $provider->get_label() );
+	}
+
+	/**
+	 * Add user profile fields.
+	 *
+	 * This executes during the `show_user_profile` & `edit_user_profile` actions.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param WP_User $user WP_User object of the logged-in user.
+	 */
+	public static function user_two_factor_options( $user ) {
+		$providers = self::get_supported_providers_for_user( $user );
+
+		wp_enqueue_style( 'user-edit-2fa', plugins_url( 'user-edit.css', __FILE__ ), array(), TWO_FACTOR_VERSION );
+
+		$available_providers_or_error = self::get_available_providers_for_user( $user );
+
+		if ( is_wp_error( $available_providers_or_error ) ) {
+			// The user has provider(s) enabled that are no longer registered on the site. Surface the existing
+			// admin-contact message on their own profile screen (where they can act on it) rather than crashing.
+			self::add_error( $available_providers_or_error );
+			$enabled_providers = array();
+		} else {
+			$enabled_providers = array_keys( $available_providers_or_error );
+		}
+
+		// This is specific to the current session, not the displayed user.
+		$show_2fa_options = self::current_user_can_update_two_factor_options();
+
+		if ( ! $show_2fa_options ) {
+			$url = add_query_arg(
+				'redirect_to',
+				urlencode( self::get_user_settings_page_url( $user->ID ) . '#two-factor-options' ),
+				self::get_user_two_factor_revalidate_url()
+			);
+
+			self::add_error(
+				new WP_Error(
+					'two_factor_revalidate_session',
+					sprintf(
+						__( 'To update your Two-Factor options, you must first revalidate your session.', 'two-factor' ) .
+						' <a class="button" href="%s">' . esc_html__( 'Revalidate now', 'two-factor' ) . '</a>',
+						esc_url( $url )
+					),
+					array(
+						'type' => 'warning',
+					)
+				)
+			);
+		}
+
+		if ( empty( $providers ) ) {
+			self::add_error(
+				new WP_Error(
+					'two_factor_no_providers_supported',
+					__( 'No providers are available for your account.', 'two-factor' ),
+					array(
+						'type' => 'notice',
+					)
+				)
+			);
+		}
+
+		// Suggest enabling a backup method if only one method is enabled and there are more available.
+		if ( count( $providers ) > 1 && 1 === count( $enabled_providers ) ) {
+			self::add_error(
+				new WP_Error(
+					'two_factor_suggest_backup',
+					isset( $providers['Two_Factor_Backup_Codes'] )
+						? __( 'To prevent being locked out of your account, consider enabling a backup method like Recovery Codes in case you lose access to your primary authentication method.', 'two-factor' )
+						: __( 'To prevent being locked out of your account, consider enabling an additional two-factor method in case you lose access to your primary authentication method.', 'two-factor' ),
+					array(
+						'type' => 'warning',
+					)
+				)
+			);
+		}
+
+		$generic_errors = array_filter(
+			self::$profile_errors,
+			static function ( WP_Error $error ) {
+				$error_data = $error->get_error_data();
+				return empty( $error_data['provider'] ); // Where the associated provider is not set.
+			}
+		);
+
+		?>
+		<h2><?php esc_html_e( 'Two-Factor Options', 'two-factor' ); ?></h2>
+
+		<?php self::render_errors( $generic_errors ); ?>
+
+		<fieldset id="two-factor-options" <?php echo $show_2fa_options ? '' : 'disabled'; ?>>
+		<legend class="screen-reader-text"><?php esc_html_e( 'Two-Factor Options', 'two-factor' ); ?></legend>
+		<?php
+		if ( $providers ) {
+			self::render_user_providers_form( $user, $providers );
+		}
+		?>
+		</fieldset>
+
+		<?php
+		/**
+		 * Fires after the Two Factor methods table.
+		 *
+		 * To be used by Two Factor methods to add settings UI.
+		 *
+		 * @param WP_User $user The user.
+		 * @param array   $providers List of providers available to the user.
+		 *
+		 * @since 0.2.0
+		 */
+		do_action( 'show_user_security_settings', $user, $providers ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Legacy unprefixed hook.
+	}
+
+	/**
+	 * Get the recommended providers for a user.
+	 *
+	 * @since 0.14.0
+	 *
+	 * @param WP_User $user User instance.
+	 *
+	 * @return array List of provider keys.
+	 */
+	private static function get_recommended_providers( $user ) {
+		$providers = array(
+			'Two_Factor_Totp',
+			'Two_Factor_Backup_Codes',
+		);
+
+		/**
+		 * Filters the keys of the recommended (secure) methods.
+		 *
+		 * @since 0.14.0
+		 *
+		 * @param array   $recommended_providers The recommended providers.
+		 * @param WP_User $user The user.
+		 */
+		return (array) apply_filters( 'two_factor_recommended_providers', $providers, $user );
+	}
+
+	/**
+	 * Render WP errors.
+	 *
+	 * @param WP_Error[] $errors List of errors to render.
+	 */
+	private static function render_errors( array $errors ) {
+		foreach ( $errors as $error ) {
+			if ( $error->has_errors() ) {
+				$error_type = $error->get_error_data()['type'] ?? null;
+
+				wp_admin_notice(
+					implode( '</p><p>', $error->get_error_messages() ),
+					array(
+						'type'               => is_string( $error_type ) ? $error_type : 'error',
+						'additional_classes' => array( 'inline' ),
+					)
+				);
+			}
+		}
+	}
+
+	/**
+	 * Render the user settings.
+	 *
+	 * @since 0.13.0
+	 *
+	 * @param WP_User $user User instance.
+	 * @param array   $providers List of available providers.
+	 */
+	private static function render_user_providers_form( $user, $providers ) {
+		$primary_provider_key      = self::get_primary_provider_key_selected_for_user( $user );
+		$available_providers       = self::get_available_providers_for_user( $user );
+		$recommended_provider_keys = self::get_recommended_providers( $user );
+
+		if ( is_wp_error( $available_providers ) ) {
+			// Already surfaced via self::add_error() in user_two_factor_options(); avoid treating the WP_Error
+			// as an array of providers here.
+			$available_providers = array();
+		}
+
+		// Move the recommended providers first.
+		$recommended_providers = array_intersect_key( $providers, array_flip( $recommended_provider_keys ) );
+		$providers             = array_merge( $recommended_providers, $providers );
+
+		?>
+		<p>
+			<?php
+			echo esc_html(
+				isset( $providers['Two_Factor_Backup_Codes'] )
+					? __( 'Configure a primary two-factor method along with a backup method, such as Recovery Codes, to avoid being locked out if you lose access to your primary method. Methods marked as recommended are more secure and easier to use.', 'two-factor' )
+					: __( 'Configure a primary two-factor method along with an additional two-factor method to avoid being locked out if you lose access to your primary method. Methods marked as recommended are more secure and easier to use.', 'two-factor' )
+			);
+			?>
+		</p>
+
+		<?php if ( function_exists( 'wp_is_application_passwords_available_for_user' ) && wp_is_application_passwords_available_for_user( $user ) ) : ?>
+		<p>
+			<?php esc_html_e( 'Authentication for REST API and XML-RPC must use application passwords (defined above) instead of your regular password.', 'two-factor' ); ?>
+		</p>
+		<?php endif; // Application passwords are supported. ?>
+
+		<?php wp_nonce_field( 'user_two_factor_options', '_nonce_user_two_factor_options', false ); ?>
+		<input type="hidden" name="<?php echo esc_attr( self::ENABLED_PROVIDERS_USER_META_KEY ); ?>[]" value="<?php /* Dummy input so $_POST value is passed when no providers are enabled. */ ?>">
+
+		<table class="form-table two-factor-methods-table" role="presentation">
+			<tbody>
+			<?php foreach ( $providers as $provider_key => $object ) : ?>
+				<tr>
+					<th><?php echo esc_html( $object->get_label() ); ?></th>
+					<td>
+						<?php self::render_errors( self::get_provider_errors( $provider_key ) ); ?>
+						<label class="two-factor-method-label">
+							<input id="enabled-<?php echo esc_attr( $provider_key ); ?>" type="checkbox" name="<?php echo esc_attr( self::ENABLED_PROVIDERS_USER_META_KEY ); ?>[]" value="<?php echo esc_attr( $provider_key ); ?>" <?php checked( isset( $available_providers[ $provider_key ] ) ); ?>>
+							<?php /* translators: %s: authentication method name. */ ?>
+							<strong><?php echo esc_html( sprintf( __( 'Enable %s', 'two-factor' ), $object->get_label() ) ); ?></strong>
+							<?php if ( in_array( $provider_key, $recommended_provider_keys, true ) ) : ?>
+								<abbr title="<?php esc_attr_e( 'This method is more secure and easy to use', 'two-factor' ); ?>" class="two-factor-method-recommended"><?php esc_html_e( 'Recommended', 'two-factor' ); ?></abbr>
+							<?php endif; ?>
+						</label>
+						<?php
+						/**
+						 * Fires after user options are shown.
+						 *
+						 * Use the {@see 'two_factor_user_options_' . $provider_key } hook instead.
+						 *
+						 * @deprecated 0.7.0
+						 *
+						 * @param WP_User $user The user.
+						 */
+						do_action_deprecated( 'two-factor-user-options-' . $provider_key, array( $user ), '0.7.0', 'two_factor_user_options_' . $provider_key );
+						do_action( 'two_factor_user_options_' . $provider_key, $user );
+						?>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+		<hr>
+		<table class="form-table two-factor-primary-method-table" role="presentation">
+			<tbody>
+				<tr>
+					<th><label for="two-factor-primary-provider"><?php esc_html_e( 'Primary Method', 'two-factor' ); ?></label></th>
+					<td>
+						<select id="two-factor-primary-provider" name="<?php echo esc_attr( self::PROVIDER_USER_META_KEY ); ?>">
+							<option value=""><?php echo esc_html( __( 'Default', 'two-factor' ) ); ?></option>
+							<?php foreach ( $providers as $provider_key => $object ) : ?>
+								<option value="<?php echo esc_attr( $provider_key ); ?>" <?php selected( $provider_key, $primary_provider_key ); ?> <?php disabled( ! isset( $available_providers[ $provider_key ] ) ); ?>>
+									<?php echo esc_html( $object->get_label() ); ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+						<p class="description"><?php esc_html_e( 'Select the primary method to use for two-factor authentication when signing into this site.', 'two-factor' ); ?></p>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<?php
+	}
+
+	/**
+	 * Get the errors marked for a specific provider.
+	 *
+	 * @param string $provider_key The provider key to get errors for.
+	 *
+	 * @return WP_Error[] List of errors for the provider.
+	 */
+	private static function get_provider_errors( string $provider_key ): array {
+		return array_filter(
+			self::$profile_errors,
+			static function ( WP_Error $error ) use ( $provider_key ) {
+				$error_data = $error->get_error_data(); // Return the data for the first error.
+
+				return isset( $error_data['provider'] ) && $error_data['provider'] === $provider_key;
+			}
+		);
+	}
+
+	/**
+	 * Enable a provider for a user.
+	 *
+	 * The caller is responsible for checking the user has permission to do this.
+	 *
+	 * @since 0.8.0
+	 *
+	 * @param int    $user_id      The ID of the user.
+	 * @param string $new_provider The name of the provider class.
+	 *
+	 * @return bool True if the provider was enabled, false otherwise.
+	 */
+	public static function enable_provider_for_user( $user_id, $new_provider ) {
+		// Ensure the provider is even available.
+		if ( ! array_key_exists( $new_provider, self::get_supported_providers_for_user( $user_id ) ) ) {
+			return false;
+		}
+
+		$enabled_providers = self::get_enabled_providers_for_user( $user_id );
+
+		// Check if this is enabled already.
+		if ( in_array( $new_provider, $enabled_providers ) ) {
+			return true;
+		}
+
+		$enabled_providers[] = $new_provider;
+
+		return (bool) update_user_meta( $user_id, self::ENABLED_PROVIDERS_USER_META_KEY, $enabled_providers );
+	}
+
+	/**
+	 * Disable a provider for a user.
+	 *
+	 * This intentionally doesn't set a new primary provider when disabling the current primary provider, because
+	 * `get_primary_provider_for_user()` will pick a new one automatically.
+	 *
+	 * The caller is responsible for checking the user has permission to do this.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param int    $user_id            The ID of the user.
+	 * @param string $provider_to_delete The name of the provider class.
+	 *
+	 * @return bool True if the provider was disabled, false otherwise.
+	 */
+	public static function disable_provider_for_user( $user_id, $provider_to_delete ) {
+		// Check if the provider is even enabled.
+		if ( ! array_key_exists( $provider_to_delete, self::get_supported_providers_for_user( $user_id ) ) ) {
+			return false;
+		}
+
+		$enabled_providers = self::get_enabled_providers_for_user( $user_id );
+
+		// Check if this is disabled already.
+		if ( ! in_array( $provider_to_delete, $enabled_providers ) ) {
+			return true;
+		}
+
+		$enabled_providers = array_diff( $enabled_providers, array( $provider_to_delete ) );
+
+		// Remove this from being a primary provider, if set.
+		$primary_provider = self::get_primary_provider_for_user( $user_id );
+		if ( $primary_provider && ! is_wp_error( $primary_provider ) && $primary_provider->get_key() === $provider_to_delete ) {
+			delete_user_meta( $user_id, self::PROVIDER_USER_META_KEY );
+		}
+
+		return (bool) update_user_meta( $user_id, self::ENABLED_PROVIDERS_USER_META_KEY, $enabled_providers );
+	}
+
+	/**
+	 * Update the user meta value.
+	 *
+	 * This executes during the `personal_options_update` & `edit_user_profile_update` actions.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int $user_id User ID.
+	 */
+	public static function user_two_factor_options_update( $user_id ) {
+		if ( isset( $_POST['_nonce_user_two_factor_options'] ) ) {
+			check_admin_referer( 'user_two_factor_options', '_nonce_user_two_factor_options' );
+
+			if ( ! isset( $_POST[ self::ENABLED_PROVIDERS_USER_META_KEY ] ) ||
+					! is_array( $_POST[ self::ENABLED_PROVIDERS_USER_META_KEY ] ) ) {
+				return;
+			}
+
+			if ( ! self::current_user_can_update_two_factor_options( 'save' ) ) {
+				return;
+			}
+
+			$user                    = self::fetch_user( $user_id );
+			$providers               = self::get_supported_providers_for_user( $user_id );
+			$enabled_providers_input = wp_unslash( $_POST[ self::ENABLED_PROVIDERS_USER_META_KEY ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Array values are sanitized below.
+			$enabled_providers       = array_map( 'sanitize_text_field', $enabled_providers_input );
+			$existing_providers      = self::get_enabled_providers_for_user( $user_id );
+
+			// Enable only the available providers.
+			$enabled_providers = array_intersect_key( $providers, array_flip( $enabled_providers ) );
+
+			// Ensure the enabled providers are configured and can be enabled.
+			foreach ( $enabled_providers as $provider_key => $provider ) {
+				if ( ! $provider->is_available_for_user( $user ) ) {
+					unset( $enabled_providers[ $provider_key ] );
+
+					self::add_error(
+						new WP_Error(
+							'two_factor_provider_not_configured_' . $provider_key,
+							sprintf(
+								/* translators: %s: provider label. */
+								__( 'The %s method must be configured before it can be enabled.', 'two-factor' ),
+								esc_html( $provider->get_label() )
+							),
+							array(
+								'provider' => $provider_key,
+							)
+						)
+					);
+				}
+			}
+
+			update_user_meta( $user_id, self::ENABLED_PROVIDERS_USER_META_KEY, array_keys( $enabled_providers ) );
+
+			// Primary provider must be enabled.
+			$new_provider = isset( $_POST[ self::PROVIDER_USER_META_KEY ] ) ? sanitize_text_field( wp_unslash( $_POST[ self::PROVIDER_USER_META_KEY ] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Value sanitized inline.
+			if ( ! empty( $new_provider ) && isset( $enabled_providers[ $new_provider ] ) ) {
+				update_user_meta( $user_id, self::PROVIDER_USER_META_KEY, $new_provider );
+			} else {
+				delete_user_meta( $user_id, self::PROVIDER_USER_META_KEY );
+			}
+
+			// Have we changed the two-factor settings for the current user? Alter their session metadata.
+			if ( get_current_user_id() === $user_id ) {
+
+				if ( $enabled_providers && ! $existing_providers && ! self::is_current_user_session_two_factor() ) {
+					// We've enabled two-factor from a non-two-factor session, set the key but not the provider, as no provider has been used yet.
+					self::update_current_user_session(
+						array(
+							'two-factor-provider' => '',
+							'two-factor-login'    => time(),
+						)
+					);
+				} elseif ( $existing_providers && ! $enabled_providers ) {
+					// We've disabled two-factor, remove session metadata.
+					self::update_current_user_session(
+						array(
+							'two-factor-provider' => null,
+							'two-factor-login'    => null,
+						)
+					);
+				}
+			}
+
+			// Destroy other sessions if setup 2FA for the first time, or deactivated a provider.
+			if (
+				// No providers, enabling one (or more).
+				( ! $existing_providers && $enabled_providers ) ||
+				// Has providers, and is disabling one (or more), but remaining with 2FA.
+				( $existing_providers && $enabled_providers && array_diff( $existing_providers, array_keys( $enabled_providers ) ) )
+			) {
+				if ( get_current_user_id() === $user_id ) {
+					// Keep the current session, destroy others sessions for this user.
+					wp_destroy_other_sessions();
+				} else {
+					// Destroy all sessions for the user.
+					WP_Session_Tokens::get_instance( $user_id )->destroy_all();
+				}
+			}
+		}
+	}
+
+	/**
+	 * Update the current user session metadata.
+	 *
+	 * Any values set in $data that are null will be removed from the user session metadata.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param array $data The data to append/remove from the current session.
+	 * @return bool
+	 */
+	public static function update_current_user_session( $data = array() ) {
+		$user_id = get_current_user_id();
+		$token   = wp_get_session_token();
+		if ( ! $user_id || ! $token ) {
+			return false;
+		}
+
+		$manager = WP_Session_Tokens::get_instance( $user_id );
+		$session = $manager->get( $token );
+
+		// Add any session data.
+		$session = array_merge( $session, $data );
+
+		// Remove any set null fields.
+		foreach ( array_filter( $data, 'is_null' ) as $key => $null ) {
+			unset( $session[ $key ] );
+		}
+
+		return $manager->update( $token, $session );
+	}
+
+	/**
+	 * Fetch the current user session metadata.
+	 *
+	 * @since 0.9.0
+	 *
+	 * @return false|array The session array, false on error.
+	 */
+	public static function get_current_user_session() {
+		$user_id = get_current_user_id();
+		$token   = wp_get_session_token();
+		if ( ! $user_id || ! $token ) {
+			return false;
+		}
+
+		$manager = WP_Session_Tokens::get_instance( $user_id );
+
+		return $manager->get( $token );
+	}
+
+	/**
+	 * Should the login session persist between sessions.
+	 *
+	 * @since 0.5.0
+	 *
+	 * @return boolean
+	 */
+	public static function rememberme() {
+		$rememberme = ! empty( $_REQUEST['rememberme'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Non-destructive display/flow flag; value normalized to bool below.
+
+		/**
+		 * Filters whether the login session should persist between browser sessions.
+		 *
+		 * @since 0.5.0
+		 *
+		 * @param bool $rememberme Whether to remember the user. Default false.
+		 */
+		return (bool) apply_filters( 'two_factor_rememberme', $rememberme );
+	}
+
+	/**
+	 * Sync the Two-Factor session data from the current session to newly created sessions.
+	 *
+	 * This is required as WordPress creates a new session when the user password is changed.
+	 *
+	 * @see https://core.trac.wordpress.org/ticket/58427
+	 *
+	 * @since 0.9.0
+	 *
+	 * @param array $session The Session information.
+	 * @param int   $user_id The User ID for the session.
+	 * @return array
+	 */
+	public static function filter_session_information( $session, $user_id ) {
+		if ( get_current_user_id() !== $user_id ) {
+			return $session;
+		}
+
+		$current_session = self::get_current_user_session();
+		if ( $current_session ) {
+			foreach ( $current_session as $key => $value ) {
+				if ( str_starts_with( $key, 'two-factor-' ) ) {
+					$session[ $key ] = $value;
+				}
+			}
+		}
+
+		return $session;
+	}
+
+	/**
+	 * Adds suggested privacy policy text for the plugin.
+	 *
+	 * @since 0.17.0
+	 */
+	public static function add_privacy_policy_content() {
+		if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
+			return;
+		}
+
+		$content =
+			'<p class="privacy-policy-tutorial">'
+			. __( 'The Two Factor plugin stores authentication data for your account on this website to verify your identity at login. No data is transmitted to third parties. The suggested text below covers what is stored, why, and for how long.', 'two-factor' )
+			. '</p>'
+
+			. '<h3>' . __( 'Two-factor authentication data', 'two-factor' ) . '</h3>'
+			. '<p>'
+			. __( 'To protect your account we store the following personal data:', 'two-factor' )
+			. '</p>'
+			. '<ul>'
+			. '<li>' . __( '<strong>TOTP secret key</strong> – a unique cryptographic secret generated when you set up an authenticator app. It is stored in your user profile.', 'two-factor' ) . '</li>'
+			. '<li>' . __( '<strong>Backup codes</strong> – a set of one-time-use codes you can store offline. Hashed copies are kept in your user profile until they are used or regenerated.', 'two-factor' ) . '</li>'
+			. '<li>' . __( '<strong>Email provider verification data</strong> – when the email provider is enabled, the plugin uses the email address already stored in your WordPress account to send a one-time login code. To validate the code, a hashed token and a timestamp are stored temporarily in your user profile metadata. The code itself is not stored.', 'two-factor' ) . '</li>'
+			. '<li>' . __( '<strong>Enabled providers list</strong> – a record of which two-factor methods you have activated (e.g. TOTP, email, backup codes) is stored in your user profile.', 'two-factor' ) . '</li>'
+			. '</ul>'
+
+			. '<h3>' . __( 'Who we share your data with', 'two-factor' ) . '</h3>'
+			. '<p>'
+			. __( 'Two-factor authentication data is never shared with or transmitted to any third party. All data remains on this website.', 'two-factor' )
+			. '</p>'
+
+			. '<h3>' . __( 'How long we retain your data', 'two-factor' ) . '</h3>'
+			. '<p>'
+			. __( 'Authentication data (secret keys, backup codes, provider settings) is retained for as long as your user account exists. It is deleted automatically when your account is removed.', 'two-factor' )
+			. '</p>';
+
+		wp_add_privacy_policy_content(
+			'Two Factor',
+			wp_kses_post( wpautop( $content, false ) )
+		);
+	}
+}

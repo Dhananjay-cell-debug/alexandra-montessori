@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { ChevronLeft, Menu, X } from "lucide-react";
-import Logo from "./Logo";
+import BrandSwitcher from "./BrandSwitcher";
 import { nav, parentInfoLinks, locations } from "../data/site";
 import { editableTextProps, homeText } from "../lib/homeVisual";
+import { useWorkspacePages } from "../lib/workspace";
 
 export default function Navbar() {
+  // The Site Editor's page directory decides the menu: its order, names,
+  // which pages sit in the bar and which are hidden.
+  const directory = useWorkspacePages();
+  const isVisible = (route) => directory?.find((page) => page.route === route)?.visible !== false;
+  const navigation = directory ? directory.filter((page) => page.visible && page.group === "primary").map((page) => ({
+    ...(nav.find((item) => item.to === page.route) || {}), label: page.label, to: page.route,
+  })) : nav;
+  const infoLinks = parentInfoLinks.filter((item) => isVisible(item.to) && !navigation.some((primary) => primary.to === item.to));
+  const nurseryLinks = locations.filter((loc) => isVisible(`/nurseries/${loc.id}`));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const [nurseriesOpen, setNurseriesOpen] = useState(false);
@@ -38,7 +48,7 @@ export default function Navbar() {
     }`;
 
   const availabilityLink = ({ isActive }) =>
-    `ml-5 hidden shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 text-[0.78rem] font-bold uppercase tracking-wide text-sage-800 shadow-soft transition-colors lg:inline-flex xl:ml-7 xl:px-6 xl:text-[0.82rem] ${
+    `ml-5 hidden shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 text-[0.78rem] font-bold uppercase tracking-wide text-sage-800 shadow-soft transition-colors min-[1280px]:inline-flex xl:ml-4 xl:px-6 xl:text-[0.82rem] ${
       isActive
         ? "bg-sage-100 shadow-card ring-1 ring-sage-800/20"
         : "bg-white hover:shadow-card"
@@ -67,22 +77,16 @@ export default function Navbar() {
       <div className="w-full px-5 sm:px-8 lg:px-10 xl:px-12">
         <nav className="relative flex h-[4.75rem] items-center py-2 lg:h-[5rem]">
           {/* Logo detached from navbar height, absolutely positioned to hang out */}
-          <div className="absolute top-1 z-10 flex items-center lg:top-2">
-            <Logo
-              variant="light"
-              size="nav"
-              showText={false}
-              className="drop-shadow-md"
-              editableKey="header-logo"
-            />
+          <div className="absolute left-0 top-[14px] z-10">
+            <BrandSwitcher />
           </div>
 
           {/* Spacer to keep flex items centered relative to the remaining space */}
-          <div className="w-[7.5rem] shrink-0 sm:w-[8.75rem] lg:w-[10.5rem]"></div>
+          <div className="brand-switcher-spacer shrink-0" aria-hidden="true"></div>
 
-          <ul className="hidden flex-1 items-center justify-center gap-5 pl-4 pr-4 lg:flex xl:gap-8 xl:pl-6 xl:pr-5">
-            {nav.map((item) =>
-              item.to === "/nurseries" && locations.length > 0 ? (
+          <ul className="hidden flex-1 items-center justify-center gap-5 pl-4 pr-4 min-[1280px]:flex xl:gap-4 xl:pl-2 xl:pr-2">
+            {navigation.map((item) =>
+              item.to === "/nurseries" && nurseryLinks.length > 0 ? (
                 <li
                   key={item.label}
                   className="relative"
@@ -97,7 +101,7 @@ export default function Navbar() {
                   {nurseriesOpen && (
                     <div className="absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 pt-3">
                       <div className="rounded-3xl border border-sage-200 bg-white p-2 shadow-card">
-                        {locations.map((loc) => (
+                        {nurseryLinks.map((loc) => (
                           <NavLink
                             key={loc.id}
                             to={`/nurseries/${loc.id}`}
@@ -140,7 +144,7 @@ export default function Navbar() {
           {/* Desktop hamburger icon for Parent Info dropdown */}
           <div
             ref={menuRef}
-            className="hidden shrink-0 lg:ml-4 lg:block xl:ml-5"
+            className="hidden shrink-0 lg:ml-4 min-[1280px]:block xl:ml-5"
           >
             <button
               type="button"
@@ -163,7 +167,7 @@ export default function Navbar() {
 
             {infoOpen && (
               <div className="absolute right-0 top-full z-50 mt-3 w-64 rounded-4xl border border-sage-200 bg-white p-2 shadow-card">
-                {parentInfoLinks.map((item) => (
+                {infoLinks.map((item) => (
                   <NavLink
                     key={item.label}
                     to={item.to}
@@ -189,7 +193,7 @@ export default function Navbar() {
             type="button"
             data-am-vb-allow-action="true"
             onClick={toggleMobileMenu}
-            className="ml-auto inline-flex h-11 w-11 items-center justify-center text-white transition-opacity hover:opacity-80 lg:hidden"
+            className="ml-auto inline-flex h-11 w-11 items-center justify-center text-white transition-opacity hover:opacity-80 min-[1280px]:hidden"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
           >
@@ -199,10 +203,10 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-white/45 bg-[#a3bc9a] lg:hidden">
+        <div className="border-t border-white/45 bg-[#a3bc9a] min-[1280px]:hidden">
           {!mobileParentInfoOpen ? (
             <ul className="container-wide flex flex-col pb-6 pt-16 sm:pt-20">
-              {nav.map((item) => (
+              {navigation.map((item) => (
                 <li
                   key={item.label}
                   className="border-b border-white/45"
@@ -215,9 +219,9 @@ export default function Navbar() {
                   >
                     {item.label}
                   </NavLink>
-                  {item.to === "/nurseries" && locations.length > 0 && (
+                  {item.to === "/nurseries" && nurseryLinks.length > 0 && (
                     <ul className="pb-2">
-                      {locations.map((loc) => (
+                      {nurseryLinks.map((loc) => (
                         <li key={loc.id}>
                           <NavLink
                             to={`/nurseries/${loc.id}`}
@@ -270,7 +274,7 @@ export default function Navbar() {
               </p>
 
               <div className="mt-8 space-y-6 pl-8">
-                {parentInfoLinks.map((item) => (
+                {infoLinks.map((item) => (
                   <NavLink
                     key={item.label}
                     to={item.to}

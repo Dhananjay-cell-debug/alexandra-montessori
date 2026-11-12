@@ -1,0 +1,50 @@
+[
+  {
+    "device": "Desktop",
+    "buttons": [
+      {
+        "children": 1,
+        "href": "/book-a-visit",
+        "text": "Book a visit"
+      }
+    ],
+    "grids": [
+      "588px 588px"
+    ],
+    "mainWidth": 1430,
+    "scrollWidth": 1430,
+    "viewport": 1440
+  },
+  {
+    "device": "Tablet",
+    "buttons": [
+      {
+        "children": 1,
+        "href": "/book-a-visit",
+        "text": "Book a visit"
+      }
+    ],
+    "grids": [
+      "376.4px 376.4px"
+    ],
+    "mainWidth": 825,
+    "scrollWidth": 825,
+    "viewport": 834
+  },
+  {
+    "device": "Phone",
+    "buttons": [
+      {
+        "children": 1,
+        "href": "/book-a-visit",
+        "text": "Book a visit"
+      }
+    ],
+    "grids": [
+      "340.8px"
+    ],
+    "mainWidth": 381,
+    "scrollWidth": 381,
+    "viewport": 390
+  }
+]

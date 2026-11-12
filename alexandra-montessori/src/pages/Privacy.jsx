@@ -101,7 +101,7 @@ export default function Privacy() {
         title="Privacy Policy"
         intro={`Effective date: ${effectiveDate}`}
       />
-      <section className="container-wide py-10">
+      <section data-am-ws="privacy.section-1" className="container-wide py-10">
         <div className="mx-auto max-w-3xl space-y-8">
           <Reveal>
             <p className="text-pretty leading-relaxed text-ink/85">

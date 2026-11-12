@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import { FileDown } from "lucide-react";
-import PageHeader from "../components/PageHeader";
 import Reveal from "../components/Reveal";
-import Seo from "../components/Seo";
 import { feeSheets, locations } from "../data/site";
 
 const dayHours = 10;
@@ -28,19 +26,10 @@ export default function FeeCalculator() {
   );
 
   return (
-    <>
-      <Seo
-        title="Funding Estimate"
-        description="Estimate weekly chargeable nursery hours after funded childcare and download the correct branch fee sheet."
-        path="/fee-calculator"
-      />
-      <PageHeader
-        region="calculator-header"
-        title="Funding Estimate"
-        intro="A simple planning tool for funded hours. It estimates chargeable weekly hours only; exact fees are confirmed by the branch using the latest fee sheet."
-      />
-
-      <section className="container-wide grid gap-8 pb-16 pt-6 lg:grid-cols-[0.85fr_1.15fr]">
+    <section id="calculator" className="container-wide scroll-mt-8 pb-16 pt-6" aria-labelledby="fee-calculator-title">
+      <h2 id="fee-calculator-title" className="font-heading text-3xl font-medium text-sage-800 sm:text-4xl">Fee calculator</h2>
+      <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink/85">Estimate your weekly chargeable hours after funded childcare. This planning tool estimates hours only; confirm the actual cost and session pattern with your nursery using its fee sheet.</p>
+      <div data-am-ws="fee-calculator.section-1" className="mt-8 grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
         <Reveal className="rounded-4xl border border-sage-100 bg-white p-7 shadow-soft" data-am-vb-region="calculator-input">
           <div className="space-y-5">
             <label className="block" data-am-vb-region="calculator-nursery">
@@ -137,7 +126,7 @@ export default function FeeCalculator() {
             )}
           </div>
         </Reveal>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

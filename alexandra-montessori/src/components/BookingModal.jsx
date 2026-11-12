@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X, CheckCircle2 } from "lucide-react";
 import { createSubmissionKey, submitForm } from "../lib/api";
+import { trackMetaLead } from "./Analytics";
 import PhoneField from "./PhoneField";
 import { emailError, normalizeEmail } from "../lib/validation";
 import { addDaysISO } from "../lib/dates";
@@ -65,6 +66,7 @@ export default function BookingModal({ open, onClose, nursery }) {
       }, submissionKey.current);
       setReference(result.reference || "");
       setStatus("sent");
+      trackMetaLead();
     } catch (err) {
       setError(err.message);
       setStatus("idle");

@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, FileDown } from "lucide-react";
+import { FileDown } from "lucide-react";
+import FeeCalculator from "./FeeCalculator";
 import PageHeader from "../components/PageHeader";
 import Reveal from "../components/Reveal";
 import Seo from "../components/Seo";
@@ -21,7 +21,7 @@ export default function Fees() {
         intro="Choose your preferred nursery to view the latest fee sheet. Funding, session patterns and final invoices are always confirmed directly with the branch."
       />
 
-      <section className="bg-cream pb-16 pt-8 sm:pb-20">
+      <section data-am-ws="fees.section-1" className="bg-cream pb-16 pt-8 sm:pb-20">
         <div className="container-wide grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
         <Reveal className="mx-auto w-full max-w-[34rem] lg:max-w-none" data-am-vb-region="fees-photo">
           <Img
@@ -61,21 +61,10 @@ export default function Fees() {
               </Reveal>
             ))}
           </div>
-          <Reveal delay={120} className="mt-8 rounded-2xl bg-sand p-6 sm:p-7" data-am-vb-region="fees-calculator">
-            <h2 className="font-heading text-2xl font-medium text-sage-800">
-              Need a funding estimate?
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-ink/85">
-              Estimate weekly chargeable hours after funded childcare, then
-              confirm the exact amount with the relevant branch fee sheet.
-            </p>
-            <Link to="/fee-calculator" className="btn-primary mt-5">
-              Estimate funded hours <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Reveal>
         </div>
         </div>
       </section>
+      <FeeCalculator />
     </>
   );
 }

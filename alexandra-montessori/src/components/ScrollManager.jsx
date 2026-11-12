@@ -7,16 +7,29 @@ export default function ScrollManager() {
 
   useEffect(() => {
     if (hash) {
-      // wait a tick for the target to render
-      const id = hash.replace("#", "");
-      requestAnimationFrame(() => {
+      // A redirected anchor can arrive before its lazy route has rendered.
+      const id = decodeURIComponent(hash.slice(1));
+      let observer;
+      const scrollToTarget = () => {
         const el = document.getElementById(id);
         if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-          return;
+          el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+          observer?.disconnect();
+          return true;
         }
-        window.scrollTo({ top: 0 });
+        return false;
+      };
+      const frame = requestAnimationFrame(() => {
+        if (scrollToTarget()) return;
+        observer = new MutationObserver(scrollToTarget);
+        observer.observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
       });
+      const timeout = window.setTimeout(() => observer?.disconnect(), 5000);
+      return () => {
+        cancelAnimationFrame(frame);
+        observer?.disconnect();
+        window.clearTimeout(timeout);
+      };
     } else {
       window.scrollTo({ top: 0 });
     }

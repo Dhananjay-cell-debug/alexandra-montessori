@@ -30,7 +30,7 @@ export default function VacancyDetail() {
       <>
         <Seo title="Vacancy not found" path={`/careers/vacancies/${slug}`} />
         <PageHeader title="Vacancy not found" region="vacancy-detail-header" />
-        <section className="bg-white py-16 sm:py-20" data-am-vb-region="vacancy-detail-fallback">
+        <section data-am-ws={`vacancy-detail.${slug}.section-1`} className="bg-white py-16 sm:py-20" data-am-vb-region="vacancy-detail-fallback">
           <div className="container-wide text-center">
             <p className="mx-auto max-w-xl font-body text-sm text-ink/85">
               This vacancy is no longer listed. You can browse our current roles
@@ -70,7 +70,7 @@ export default function VacancyDetail() {
       />
       <PageHeader title={job.title} crumb="Vacancy" region="vacancy-detail-header" />
 
-      <section className="bg-white py-14 sm:py-18" data-am-vb-region="vacancy-detail-content">
+      <section data-am-ws={`vacancy-detail.${slug}.section-2`} className="bg-white py-14 sm:py-18" data-am-vb-region="vacancy-detail-content">
         <div className="container-wide max-w-4xl">
           {/* Meta chips */}
           <Reveal>

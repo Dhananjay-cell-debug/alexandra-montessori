@@ -48,10 +48,10 @@ add_filter('jpeg_quality', 'alexandra_montessori_jpeg_quality');
  * Filesystem path / URL of the built SPA in the theme's /dist directory.
  */
 function alexandra_dist_path() {
-  return get_template_directory() . '/dist';
+  return apply_filters('alexandra_dist_path',get_template_directory() . '/dist');
 }
 function alexandra_dist_uri() {
-  return get_template_directory_uri() . '/dist';
+  return apply_filters('alexandra_dist_uri',get_template_directory_uri() . '/dist');
 }
 
 /** Whether the current public request is the SPA home route. */
@@ -74,10 +74,10 @@ function alexandra_montessori_hero_poster() {
   static $poster = null;
   if (is_array($poster)) return $poster;
 
-  $default = alexandra_dist_uri() . '/assets/videos/alexandra-promo-poster.webp';
-  $mobile_default = alexandra_dist_uri() . '/assets/videos/alexandra-promo-poster-768-3f8765e4.webp';
+  $default = alexandra_dist_uri() . '/assets/videos/alexandra-hero-smooth-poster-20261111.webp';
+  $mobile_default = $default;
   $src = $default;
-  $mobile = is_readable(alexandra_dist_path() . '/assets/videos/alexandra-promo-poster-768-3f8765e4.webp')
+  $mobile = is_readable(alexandra_dist_path() . '/assets/videos/alexandra-hero-smooth-poster-20261111.webp')
     ? $mobile_default
     : $default;
   $attachment_id = 0;
@@ -215,7 +215,13 @@ remove_action('wp_head', 'wp_generator');
  */
 function alexandra_montessori_script_type($tag, $handle, $src) {
   if ($handle === 'alexandra-app') {
-    return '<script type="module" crossorigin src="' . esc_url($src) . '"></script>' . "\n";
+    // WordPress may include before/after inline data in this same tag string
+    // (the Site Editor's page directory arrives that way). Preserve those
+    // declarations; only the actual bundle uses module type. (Same as LDRN.)
+    return preg_replace_callback('/<script\b[^>]*\bid=["\']alexandra-app-js["\'][^>]*>/i', static function($match) {
+      $opening=preg_replace('/\s+type=["\'][^"\']*["\']/i','',$match[0]);
+      return substr($opening,0,-1).' type="module" crossorigin>';
+    },$tag);
   }
   if (in_array($handle, array('am-vb-style-apply', 'am-vb-site-runtime'), true)) {
     $id = preg_quote($handle . '-js', '/');
@@ -263,6 +269,18 @@ function am_ga4_id() {
   $opts = get_option('am_settings');
   $id = is_array($opts) && isset($opts['ga4_id']) ? trim((string) $opts['ga4_id']) : '';
   return preg_match('/^G-[A-Z0-9]+$/i', $id) ? $id : '';
+}
+
+/**
+ * The validated Meta (Facebook) Pixel ID from Site Settings, or '' if unset/invalid.
+ * Pixel IDs are purely numeric (usually 15-16 digits). Shared with the SPA via
+ * window.amData so the React consent-aware loader can fire it after marketing
+ * cookies are accepted (see Analytics.jsx).
+ */
+function am_meta_pixel_id() {
+  $opts = get_option('am_settings');
+  $id = is_array($opts) && isset($opts['meta_pixel_id']) ? trim((string) $opts['meta_pixel_id']) : '';
+  return preg_match('/^\d{10,20}$/', $id) ? $id : '';
 }
 
 /** Site Kit is the authoritative Analytics connection in production. */
@@ -709,6 +727,7 @@ function am_get_events() {
   $result = [];
   foreach ($posts as $p) {
     if (function_exists('am_event_is_frontend_ready') && !am_event_is_frontend_ready($p->ID)) continue;
+    if (function_exists('am_ws_route_visible') && !am_ws_route_visible('/events/'.$p->post_name)) continue;
     $content = trim($p->post_content);
     $result[] = [
       'id'          => $p->post_name,
@@ -738,7 +757,8 @@ function am_ready_blog_posts() {
     'order'          => 'DESC',
   ]);
   $ready_posts = array_values(array_filter($posts, function ($post) {
-    return !function_exists('am_blog_is_frontend_ready') || am_blog_is_frontend_ready($post->ID);
+    return (!function_exists('am_blog_is_frontend_ready') || am_blog_is_frontend_ready($post->ID))
+      && (!function_exists('am_ws_route_visible') || am_ws_route_visible('/blogs/'.$post->post_name));
   }));
   return $ready_posts;
 }
@@ -852,7 +872,8 @@ function am_blog_archive_rest($request) {
 function am_blog_article_rest($request) {
   $slug = sanitize_title((string) $request->get_param('slug'));
   $post = get_page_by_path($slug, OBJECT, 'post');
-  if (!$post || $post->post_status !== 'publish' || !am_blog_is_frontend_ready($post->ID)) {
+  if (!$post || $post->post_status !== 'publish' || !am_blog_is_frontend_ready($post->ID)
+      || (function_exists('am_ws_route_visible') && !am_ws_route_visible('/blogs/'.$slug))) {
     return new WP_Error('article_not_found', 'Article not found.', ['status' => 404]);
   }
 
@@ -1025,6 +1046,7 @@ function am_get_nurseries() {
   $result = [];
   foreach ($posts as $p) {
     if (function_exists('am_nursery_is_frontend_ready') && !am_nursery_is_frontend_ready($p->ID)) continue;
+    if (function_exists('am_ws_route_visible') && !am_ws_route_visible('/nurseries/'.$p->post_name)) continue;
     // file_list stores [ attachment_id => url ]; extract URLs only.
     $gallery_raw = get_post_meta($p->ID, '_am_nursery_gallery', true);
     $gallery = (is_array($gallery_raw) && !empty($gallery_raw)) ? array_values($gallery_raw) : [];
@@ -1090,6 +1112,7 @@ function am_get_jobs() {
   $result = [];
   foreach ($posts as $p) {
     if (function_exists('am_job_is_frontend_ready') && !am_job_is_frontend_ready($p->ID)) continue;
+    if (function_exists('am_ws_route_visible') && !am_ws_route_visible('/careers/vacancies/'.$p->post_name)) continue;
     $result[] = [
       'id'               => $p->post_name,
       'title'            => am_frontend_title($p),
@@ -1117,7 +1140,7 @@ function am_get_jobs() {
 function am_localize_cms_data() {
   if (!wp_script_is('alexandra-app', 'enqueued')) return;
   $testimonial_preview = am_testimonial_query(1, 3);
-  wp_localize_script('alexandra-app', 'amData', [
+  wp_localize_script('alexandra-app', 'amData', apply_filters('am_cms_data', [
     'schemaVersion' => 4,
     'events'       => am_get_events(),
     'blogArchive'  => am_get_blog_archive(),
@@ -1134,7 +1157,8 @@ function am_localize_cms_data() {
     'heroPoster'   => alexandra_montessori_hero_poster(),
     'analyticsTagId' => am_analytics_tag_id(),
     'ga4Id'        => am_analytics_tag_id(),
-  ]);
+    'metaPixelId'  => am_meta_pixel_id(),
+  ]));
 }
 add_action('wp_enqueue_scripts', 'am_localize_cms_data', 20);
 
@@ -1215,6 +1239,16 @@ function am_register_settings_page() {
     'type'       => 'text',
     'attributes' => ['placeholder' => 'G-XXXXXXXXXX'],
     'desc'       => 'From Google Analytics -> Admin -> Data streams -> Web -> Measurement ID. Leave blank to switch analytics off. Visits are only counted once this is filled in.',
+  ]);
+
+  // Meta (Facebook) Pixel - paste the Pixel ID from Meta Events Manager
+  // (Data sources -> your pixel -> Settings). It's a numeric ID.
+  $cmb->add_field([
+    'name'       => 'Meta (Facebook) Pixel ID',
+    'id'         => 'meta_pixel_id',
+    'type'       => 'text',
+    'attributes' => ['placeholder' => '1234567890123456'],
+    'desc'       => 'From Meta Events Manager -> Data sources -> your pixel -> Settings. Leave blank to switch the pixel off. Loads only after a visitor accepts marketing cookies.',
   ]);
 
   // Google Search Console - paste the verification meta tag (or just its token)
@@ -1472,6 +1506,26 @@ function am_notify_email($preferred = '') {
  * If they are absent, this is a no-op and Local's Mailpit keeps catching mail.
  */
 function am_configure_smtp($phpmailer) {
+  // Live site: every WordPress email (password notices, account emails) goes
+  // out as the nursery's own domain, through the same Hostinger transport and
+  // DKIM key the form alerts use - never through a personal Gmail account.
+  $site_host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+  $dkim_key  = dirname(rtrim(ABSPATH, '/'), 3) . '/.am-forms-dkim-private.pem';
+  if (in_array($site_host, ['alexandramontessori.co.uk', 'www.alexandramontessori.co.uk'], true) && is_readable($dkim_key)) {
+    $sender = 'website@forms.alexandramontessori.co.uk';
+    $phpmailer->isMail();
+    $phpmailer->setFrom($sender, 'Alexandra Montessori', false);
+    $phpmailer->Sender          = $sender;
+    $phpmailer->DKIM_domain     = 'forms.alexandramontessori.co.uk';
+    $phpmailer->DKIM_selector   = 'website';
+    $phpmailer->DKIM_private    = $dkim_key;
+    $phpmailer->DKIM_passphrase = '';
+    $phpmailer->DKIM_identity   = $sender;
+    if (!$phpmailer->getReplyToAddresses()) {
+      $phpmailer->addReplyTo('info@alexandramontessori.co.uk', 'Alexandra Montessori');
+    }
+    return;
+  }
   if (!defined('AM_SMTP_HOST') || !AM_SMTP_HOST) {
     return; // no SMTP configured — leave default (Mailpit) transport alone
   }

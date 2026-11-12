@@ -34,7 +34,7 @@ export default function About() {
       />
 
       {/* Our story */}
-      <section className="container-wide py-12 sm:py-16">
+      <section data-am-ws="about.section-1" className="container-wide py-12 sm:py-16">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <Reveal>
             <Img
@@ -61,7 +61,7 @@ export default function About() {
       </section>
 
       {/* Montessori-based approach - 4 pillars */}
-      <section className="relative overflow-hidden bg-sand py-20">
+      <section data-am-ws="about.section-2" className="relative overflow-hidden bg-sand py-20">
         <div className="grid-bg absolute inset-0 opacity-10" />
         <div className="container-wide relative">
           <SectionHeading
@@ -91,7 +91,7 @@ export default function About() {
       </section>
 
       {/* Quote */}
-      <section className="container-wide py-20">
+      <section data-am-ws="about.section-3" className="container-wide py-20">
         <Reveal className="rounded-5xl bg-sage-50 px-6 py-14 text-center sm:px-12">
           <Quote className="mx-auto h-10 w-10 text-sage-300" />
           <blockquote className="mx-auto mt-5 max-w-3xl text-balance font-heading text-2xl font-medium leading-snug text-ink sm:text-3xl">
@@ -104,7 +104,7 @@ export default function About() {
       </section>
 
       {/* Our staff */}
-      <section className="container-wide pb-4">
+      <section data-am-ws="about.section-4" className="container-wide pb-4">
         <div className="grid items-start gap-12 lg:grid-cols-2">
           <div>
             <SectionHeading
@@ -143,7 +143,7 @@ export default function About() {
       </section>
 
       {/* A typical day */}
-      <section className="container-wide py-16 sm:py-20">
+      <section data-am-ws="about.section-5" className="container-wide py-16 sm:py-20">
         <SectionHeading
           eyebrow="A typical day"
           title="The rhythm of a Montessori day"

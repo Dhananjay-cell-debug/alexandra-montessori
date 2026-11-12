@@ -1,0 +1,21 @@
+<?php
+if(!defined('DB_ENGINE') || DB_ENGINE!=='sqlite' || !str_contains(str_replace('\\','/',ABSPATH),'/private-releases/sqlite-evaluation-'))throw new RuntimeException('Isolated SQLite export only.');
+$config=json_decode(file_get_contents(getenv('LDRN_PRIVATE_DEPLOYMENT_CONFIG')),true);
+$admin=$config['administrator'];
+require_once ABSPATH.'wp-admin/includes/plugin.php';
+$owner=get_user_by('login',$admin['login']);
+if(!$owner || !in_array('administrator',$owner->roles,true) || strlen($admin['password'])<20)throw new RuntimeException('Expected the configured local owner.');
+wp_update_user(['ID'=>$owner->ID,'user_email'=>$admin['email']]);wp_set_password($admin['password'],$owner->ID);
+foreach(get_users(['role'=>'administrator']) as $user)if($user->ID!=$owner->ID)wp_set_password(bin2hex(random_bytes(32)),$user->ID);
+delete_metadata('user',0,'session_tokens','',true);delete_metadata('user',0,'_application_passwords','',true);
+$active=get_option('active_plugins',[]);$active[]='sqlite-database-integration/load.php';update_option('active_plugins',array_values(array_unique($active)));
+update_option('home','https://ldrn.krildigital.com');update_option('siteurl','https://ldrn.krildigital.com');update_option('rewrite_rules',false);
+if(!is_array(get_option(LDRN_WS_STUDIO_LIVE)) || count(ldrn_get_testimonials())<3 || get_option('template')!=='ldrn-theme')throw new RuntimeException('Content/design checks failed.');
+wp_set_current_user($owner->ID);
+$session=ldrn_ws_capture_session('FTP deployment baseline');
+if(!$session)throw new RuntimeException('Production baseline could not be saved.');
+$target=dirname(rtrim(ABSPATH,'/\\')).'/deployment.sqlite';
+if(is_file($target))throw new RuntimeException('The evaluation was already exported.');
+$db=new PDO('sqlite:'.FQDB,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$db->exec('PRAGMA busy_timeout=5000');$db->exec('VACUUM INTO '.$db->quote($target));
+echo "Production administrator, baseline session and consistent portable SQLite export prepared privately.\n";

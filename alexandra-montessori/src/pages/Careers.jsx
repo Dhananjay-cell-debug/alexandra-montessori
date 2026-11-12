@@ -28,7 +28,7 @@ export default function Careers() {
       <PageHeader title="Careers" region="careers-header" />
 
       {/* Vacancies link + intro */}
-      <section className="bg-white pb-10" data-am-vb-region="careers-vacancies-intro">
+      <section data-am-ws="careers.section-1" className="bg-white pb-10" data-am-vb-region="careers-vacancies-intro">
         <div className="container-wide text-center">
           <Reveal>
             <Link
@@ -54,7 +54,7 @@ export default function Careers() {
       </section>
 
       {/* Application form */}
-      <section id="apply" className="scroll-mt-28 bg-white pb-16" data-am-vb-region="careers-application">
+      <section data-am-ws="careers.section-2" id="apply" className="scroll-mt-28 bg-white pb-16" data-am-vb-region="careers-application">
         <div className="container-wide">
           <Reveal>
             <ApplicationForm />
@@ -63,7 +63,7 @@ export default function Careers() {
       </section>
 
       {/* Why work with us */}
-      <section className="bg-sand py-16 sm:py-20" data-am-vb-region="careers-benefits">
+      <section data-am-ws="careers.section-3" className="bg-sand py-16 sm:py-20" data-am-vb-region="careers-benefits">
         <div className="container-wide text-center">
           <h2 className="font-heading text-3xl font-medium text-sage-800 sm:text-4xl">
             Why work with us?
@@ -89,7 +89,7 @@ export default function Careers() {
       </section>
 
       {/* Square preview grid + a natural-ratio "View more" gallery */}
-      <section className="bg-white py-16 sm:py-20" data-am-vb-region="careers-gallery">
+      <section data-am-ws="careers.section-4" className="bg-white py-16 sm:py-20" data-am-vb-region="careers-gallery">
         <div className="container-wide">
           <h2 className="text-center font-heading text-3xl font-medium text-sage-800 sm:text-4xl">
             View Gallery
@@ -140,7 +140,7 @@ export default function Careers() {
       </section>
 
       {/* What we're looking for */}
-      <section className="bg-sand py-16 sm:py-20" data-am-vb-region="careers-qualities">
+      <section data-am-ws="careers.section-5" className="bg-sand py-16 sm:py-20" data-am-vb-region="careers-qualities">
         <div className="container-wide text-center">
           <h2 className="font-heading text-3xl font-medium text-sage-800 sm:text-4xl">
             What We Are Looking For?
@@ -166,7 +166,7 @@ export default function Careers() {
       </section>
 
       {/* Closing band */}
-      <section className="bg-sand py-16 text-center" data-am-vb-region="careers-closing">
+      <section data-am-ws="careers.section-6" className="bg-sand py-16 text-center" data-am-vb-region="careers-closing">
         <div className="container-wide">
           <h2 className="font-heading text-3xl font-medium text-sage-800 sm:text-4xl">
             Ready to start your career at Alexandra Montessori?

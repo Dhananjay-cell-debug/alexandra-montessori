@@ -502,6 +502,7 @@ function am_access_user_landing_url($user) {
   foreach (am_access_allowed_sections($user) as $section) {
     if (isset($targets[$section])) return admin_url($targets[$section]);
   }
+  if (function_exists('am_ws_access_routes') && am_ws_access_routes($user)) return admin_url('admin.php?page=am-studio');
   return admin_url('profile.php');
 }
 
@@ -651,7 +652,7 @@ function am_access_admin_request_section($pagenow, $request = []) {
     // The Visual Builder is not one of the ten dashboard sections - it is
     // allocated per page by AM_VB_Access, which guards this screen itself.
     // Returning null means "this guard has no opinion", not "allow anything".
-    if ($page === 'am_visual_builder') return null;
+    if ($page === 'am_visual_builder' || $page === 'am-studio') return null;
     return false;
   }
 

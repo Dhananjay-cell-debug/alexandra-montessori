@@ -39,6 +39,12 @@ final class AM_VB_Style_Schema {
 			'fill'       => array('tab' => 'style',   'label' => 'Box',        'icon' => '◻',  'open' => false),
 			'effects'    => array('tab' => 'style',   'label' => 'Effects',    'icon' => '✧',  'open' => false),
 			'position'   => array('tab' => 'layout',  'label' => 'Position',   'icon' => '⤢',  'open' => true),
+			// Separate from 'position' on purpose: on crop-mode media (a photo
+			// held inside a fixed-shape frame, e.g. the home hexagons) 'position'
+			// moves/zooms the photo *inside* the frame while 'frame' resizes the
+			// frame itself. Same toolkit, two clearly-labelled groups, so both stay
+			// available without either one being mistaken for the other.
+			'frame'      => array('tab' => 'layout',  'label' => 'Frame size', 'icon' => '⬚',  'open' => false),
 			'spacing'    => array('tab' => 'layout',  'label' => 'Spacing',    'icon' => '⇔',  'open' => false),
 			'visibility' => array('tab' => 'layout',  'label' => 'Visibility', 'icon' => '👁', 'open' => false),
 		);
@@ -77,11 +83,23 @@ final class AM_VB_Style_Schema {
 				'notTypes' => array('section'),
 				'var' => array('element' => '--am-element-scale', 'media' => '--am-media-scale'),
 			),
+			// -- Frame ----------------------------------------------------------
+			// These three resize/rotate the outer frame. Crop-mode media
+			// ('image': a photo held inside a fixed-shape frame, e.g. the home
+			// hexagons) is excluded on purpose and for good - that frame is meant
+			// to stay a fixed shape; 'position' above (offsetX/offsetY/scale,
+			// wired to --am-media-*) already moves/zooms the *photo* inside it,
+			// which is the only thing that should ever change there. The canvas
+			// drag handles honour the same rule (see editor.js's isCropMedia
+			// guard on handle creation), so this is not just a hidden-panel fix -
+			// dragging directly on the hexagon can no longer resize it either.
+			// 'logo' (move-mode: icons, brand mark, footer badges) is unrelated -
+			// it is freely placed, not clipped, and keeps this toolkit.
 			'rotate' => array(
-				'label' => 'Rotate', 'group' => 'position', 'control' => 'range',
+				'label' => 'Rotate', 'group' => 'frame', 'control' => 'range',
 				'min' => -180, 'max' => 180, 'step' => 1, 'default' => 0, 'unit' => 'deg',
 				'device' => true,
-				'notTypes' => array('section'),
+				'notTypes' => array('section', 'image'),
 				'var' => '--am-vb-rotate',
 			),
 			// Width and height drive the side resize handles. Zero means "leave
@@ -90,24 +108,24 @@ final class AM_VB_Style_Schema {
 			// reflows onto the next line when its width shrinks; media stretches
 			// on that axis. That difference is CSS behaviour, not a special case.
 			'width' => array(
-				'label' => 'Width', 'group' => 'position', 'control' => 'range',
+				'label' => 'Width', 'group' => 'frame', 'control' => 'range',
 				'min' => 0, 'max' => 1600, 'step' => 1, 'default' => 0, 'unit' => 'px',
 				'zeroLabel' => 'automatic',
 				'device' => true,
 				// A band is always full-bleed; what a client means by "how wide" is
 				// the content column inside it, which is `contentWidth`.
-				'notTypes' => array('section'),
+				'notTypes' => array('section', 'image'),
 				'var' => '--am-vb-width',
 			),
 			// Height only means something on a box. Forcing a height onto a run
 			// of text just parks empty space under it, so text does not get it -
 			// and its vertical resize handles are hidden to match.
 			'height' => array(
-				'label' => 'Height', 'group' => 'position', 'control' => 'range',
+				'label' => 'Height', 'group' => 'frame', 'control' => 'range',
 				'min' => 0, 'max' => 1600, 'step' => 1, 'default' => 0, 'unit' => 'px',
 				'zeroLabel' => 'automatic',
 				'device' => true,
-				'notTypes' => array('text', 'textarea', 'section'),
+				'notTypes' => array('text', 'textarea', 'section', 'image'),
 				'var' => '--am-vb-height',
 			),
 

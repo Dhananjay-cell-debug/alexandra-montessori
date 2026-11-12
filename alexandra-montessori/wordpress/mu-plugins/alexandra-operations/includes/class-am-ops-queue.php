@@ -572,9 +572,7 @@ final class AM_Ops_Queue {
 			$job['recipient'],
 			$subject,
 			$body,
-			$this->notification_headers($payload),
-			(string) ($payload['customer_email'] ?? ''),
-			(string) ($payload['customer_name'] ?? '')
+			$this->notification_headers($payload)
 		);
 
 		if (is_wp_error($sent)) {
@@ -806,13 +804,11 @@ final class AM_Ops_Queue {
 	 * @param string   $subject Subject.
 	 * @param string   $body Body.
 	 * @param string[] $headers Headers.
-	 * @param string   $message_from      Message-specific From address.
-	 * @param string   $message_from_name Message-specific From display name.
 	 * @return true|WP_Error
 	 */
-	private function send_mail($to, $subject, $body, $headers, $message_from = '', $message_from_name = '') {
+	private function send_mail($to, $subject, $body, $headers) {
 		$failure = null;
-		$mailer_configuration = $this->production_mailer_configuration($message_from, $message_from_name);
+		$mailer_configuration = $this->production_mailer_configuration();
 		if (is_wp_error($mailer_configuration)) {
 			return $mailer_configuration;
 		}
@@ -847,24 +843,20 @@ final class AM_Ops_Queue {
 	 * The legacy site-wide SMTP hook authenticates as a developer Gmail account.
 	 * Gmail consequently rewrites every From address back to that personal
 	 * account. Operations mail switches only its own PHPMailer instance to the
-	 * hosting transport. The current submitter can remain the literal From for
-	 * an immediate form alert, while the isolated forms identity signs and owns
-	 * the envelope. Other WordPress mail remains untouched.
-	 *
-	 * @param string $message_from      Message-specific From address.
-	 * @param string $message_from_name Message-specific From display name.
+	 * hosting transport. The domain-authenticated website identity owns both
+	 * From and the envelope so DKIM aligns. The parent's address belongs only in
+	 * Reply-To. Other WordPress mail remains untouched.
 	 * @return callable|null|WP_Error
 	 */
-	private function production_mailer_configuration($message_from = '', $message_from_name = '') {
+	private function production_mailer_configuration() {
 		$host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
 		if (!in_array($host, array('alexandramontessori.co.uk', 'www.alexandramontessori.co.uk'), true)) {
 			return null;
 		}
 
 		$sender      = $this->sender_email();
-		$from        = strtolower(sanitize_email((string) $message_from));
-		$from        = is_email($from) ? $from : $sender;
-		$from_name   = $this->mail_display_name($message_from_name);
+		$from        = $sender;
+		$from_name   = 'Alexandra Montessori Website';
 		$dkim_domain = defined('AM_OPS_DKIM_DOMAIN')
 			? strtolower(trim((string) AM_OPS_DKIM_DOMAIN))
 			: self::DEFAULT_DKIM_DOMAIN;
@@ -947,10 +939,10 @@ final class AM_Ops_Queue {
 	}
 
 	/**
-	 * Present an immediate form alert as coming from the submitted address.
+	 * Use the authenticated website sender and direct replies to the parent.
 	 *
-	 * The selected nursery remains the sole recipient. Reply-To repeats the
-	 * submitted address so the nursery's Reply button reaches the same person.
+	 * The selected nursery remains the sole recipient. A visitor's mailbox is
+	 * never impersonated in From, which would break DMARC alignment.
 	 *
 	 * @param array<string,mixed> $payload Notification payload.
 	 * @return string[]
@@ -958,15 +950,9 @@ final class AM_Ops_Queue {
 	private function sender_identity_headers($payload) {
 		$email = strtolower(sanitize_email((string) ($payload['customer_email'] ?? '')));
 		$name    = wp_strip_all_tags((string) ($payload['customer_name'] ?? ''));
-		$headers = array();
+		$headers = array('From: ' . $this->mail_address('Alexandra Montessori Website', $this->sender_email()));
 		if (is_email($email)) {
 			$headers[] = 'Reply-To: ' . $this->mail_address($name, $email);
-			$headers[] = 'From: ' . $this->mail_address($name, $email);
-		} else {
-			$headers[] = 'From: ' . $this->mail_address(
-				'Alexandra Montessori Website',
-				$this->sender_email()
-			);
 		}
 
 		return $headers;

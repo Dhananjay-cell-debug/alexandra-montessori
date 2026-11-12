@@ -322,3 +322,38 @@ html[data-am-vb-canvas-mode="edit"] [data-am-vb-styled="true"][data-am-vb-hidden
 		translate: none !important;
 	}
 }
+
+/* ---------------------------------------------------------------------------
+ * About-us photo column: a builder-set width must never clip the text beside it.
+ *
+ * `.am-home-about-media` is a CSS grid item, so its automatic minimum size is
+ * its content rather than zero. A fixed pixel width saved from the desktop
+ * canvas therefore widened the shared grid track on phones and cut the
+ * paragraph column off at the screen edge. `min-width: 0` lets the track
+ * shrink to the viewport, and the max-width keeps the framed photo inside
+ * whatever column it lands in. Both are inert on tablet and desktop, where the
+ * column is already wider than any saved frame.
+ * ------------------------------------------------------------------------- */
+.am-home-about-media {
+	min-width: 0;
+}
+
+.am-home-about-media > [data-am-vb-styled="true"] {
+	max-width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+ * Home hero video stays locked to its poster.
+ *
+ * The hero <video> is a full-bleed background layer sitting exactly on top of
+ * the poster <picture>. It is also a builder-editable media node, so a stray
+ * drag in the visual builder saved an X/Y offset (340px / 465px) on the video
+ * only; the poster never moves, so the two split apart and the video ended up
+ * shifted down-right while the still poster showed through. Ignore any saved
+ * move/scale for this one element on the public site. The builder's own edit
+ * canvas is excluded so editing behaves as before.
+ * ------------------------------------------------------------------------- */
+html:not([data-am-vb-canvas-mode="edit"]) .am-home-hero video.am-vb-editable-media {
+	scale: none !important;
+	translate: none !important;
+}

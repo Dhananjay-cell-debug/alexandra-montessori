@@ -12,6 +12,7 @@ import {
   homeMedia,
   homeText,
 } from "../lib/homeVisual";
+import { useWorkspacePages } from "../lib/workspace";
 
 function OfstedMark() {
   const mark = homeMedia("footer-ofsted", "", "Ofsted");
@@ -78,6 +79,13 @@ function OfstedMark() {
 }
 
 export default function Footer() {
+  // Quick links follow the Site Editor's page directory: hidden pages drop
+  // out and renamed pages keep their new name. Each link keeps its own slot.
+  const directory = useWorkspacePages();
+  const pageFor = (route) => directory?.find((page) => page.route === route);
+  const quickLinks = parentInfoLinks
+    .map((item, index) => ({ ...item, label: pageFor(item.to)?.label || item.label, slot: index + 1 }))
+    .filter((item) => pageFor(item.to)?.visible !== false);
   const [showMore, setShowMore] = useState(false);
   const year = new Date().getFullYear();
 
@@ -160,14 +168,14 @@ export default function Footer() {
                   {homeText("footer-quick-links-heading", "Quick links")}
                 </p>
                 <div className="space-y-2">
-                  {parentInfoLinks.map((item, index) => (
+                  {quickLinks.map((item) => (
                     <Link
                       key={item.label}
-                      {...editableTextProps(`footer-quick-link-${index + 1}`, `Footer quick link ${index + 1}`, false, item.label)}
-                      to={homeHref(`footer-quick-link-${index + 1}`, item.to)}
+                      {...editableTextProps(`footer-quick-link-${item.slot}`, `Footer quick link ${item.slot}`, false, item.label)}
+                      to={homeHref(`footer-quick-link-${item.slot}`, item.to)}
                       className="block text-sm text-white/92 transition-colors hover:text-white"
                     >
-                      {homeText(`footer-quick-link-${index + 1}`, item.label)}
+                      {homeText(`footer-quick-link-${item.slot}`, item.label)}
                     </Link>
                   ))}
                 </div>

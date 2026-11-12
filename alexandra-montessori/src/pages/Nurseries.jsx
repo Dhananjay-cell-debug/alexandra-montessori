@@ -23,7 +23,7 @@ export default function Nurseries() {
         path="/nurseries"
       />
 
-      <section className="bg-sand py-12 sm:py-16" data-am-vb-region="nurseries-introduction">
+      <section data-am-ws="nurseries.section-1" className="bg-sand py-12 sm:py-16" data-am-vb-region="nurseries-introduction">
         <div className="container-wide text-center">
           <Reveal
             as="h1"
@@ -79,7 +79,7 @@ export default function Nurseries() {
         </div>
       </section>
 
-      <section className="bg-white py-14 sm:py-16" data-am-vb-region="nurseries-directory">
+      <section data-am-ws="nurseries.section-2" className="bg-white py-14 sm:py-16" data-am-vb-region="nurseries-directory">
         {locations.length === 0 ? (
           <div className="container-wide text-center">
             <Link to="/contact" className="btn-primary">

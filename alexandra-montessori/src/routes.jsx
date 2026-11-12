@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import App from "./App.jsx";
 import Home from "./pages/Home.jsx";
 
@@ -8,7 +8,6 @@ const NurseryDetail = lazy(() => import("./pages/NurseryDetail.jsx"));
 const About = lazy(() => import("./pages/About.jsx"));
 const Curriculum = lazy(() => import("./pages/Curriculum.jsx"));
 const Fees = lazy(() => import("./pages/Fees.jsx"));
-const FeeCalculator = lazy(() => import("./pages/FeeCalculator.jsx"));
 const FundedChildcare = lazy(() => import("./pages/FundedChildcare.jsx"));
 const Blogs = lazy(() => import("./pages/Blogs.jsx"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle.jsx"));
@@ -25,6 +24,7 @@ const Contact = lazy(() => import("./pages/Contact.jsx"));
 const ContactLocation = lazy(() => import("./pages/ContactLocation.jsx"));
 const Privacy = lazy(() => import("./pages/Privacy.jsx"));
 const NotFound = lazy(() => import("./pages/NotFound.jsx"));
+const WorkspacePage = lazy(() => import("./pages/WorkspacePage.jsx"));
 
 export default function AppRoutes() {
   return (
@@ -37,7 +37,7 @@ export default function AppRoutes() {
           <Route path="about" element={<About />} />
           <Route path="curriculum" element={<Curriculum />} />
           <Route path="fees" element={<Fees />} />
-          <Route path="fee-calculator" element={<FeeCalculator />} />
+          <Route path="fee-calculator" element={<Navigate to="/fees#calculator" replace />} />
           <Route path="funded-childcare" element={<FundedChildcare />} />
           <Route path="blogs" element={<Blogs />} />
           <Route path="blogs/:slug" element={<BlogArticle />} />
@@ -53,7 +53,7 @@ export default function AppRoutes() {
           <Route path="contact" element={<Contact />} />
           <Route path="contact/:slug" element={<ContactLocation />} />
           <Route path="privacy" element={<Privacy />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<WorkspacePage fallback={<NotFound />} />} />
         </Route>
       </Routes>
     </Suspense>

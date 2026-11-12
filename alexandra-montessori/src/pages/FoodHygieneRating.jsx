@@ -34,7 +34,7 @@ export default function FoodHygieneRating() {
         intro="Branch-level food hygiene information is listed clearly so parents can check the relevant public record directly."
       />
 
-      <section className="container-wide pb-16 pt-6" data-am-vb-region="hygiene-grid">
+      <section data-am-ws="food-hygiene-rating.section-1" className="container-wide pb-16 pt-6" data-am-vb-region="hygiene-grid">
         <div className="grid gap-6 lg:grid-cols-3">
           {foodHygieneRatings.map((rating, index) => {
             const badge = getRatingBadge(rating.rating);

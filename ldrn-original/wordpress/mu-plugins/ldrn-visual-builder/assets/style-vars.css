@@ -1,0 +1,324 @@
+/*
+ * Consumes the custom properties written by assets/style-apply.js.
+ *
+ * Every property here is generated from class-ldrn-vb-style-schema.php, so this
+ * file is the render half of the same contract the inspector and the save
+ * whitelist use. Breakpoints match the React app's index.css exactly:
+ * mobile base, tablet at 640px, desktop at 1024px.
+ *
+ * The historical --ldrn-element-* / --ldrn-media-* transform variables are left
+ * alone; they are still owned by index.css. Everything below is new surface.
+ */
+
+[data-ldrn-vb-styled="true"] {
+	rotate: var(--ldrn-vb-rotate-mobile, 0deg);
+	opacity: var(--ldrn-vb-opacity, 1);
+}
+
+/* Box ------------------------------------------------------------------- */
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-padding-mobile"] {
+	padding: var(--ldrn-vb-padding-mobile, 0px);
+}
+
+/* Size ------------------------------------------------------------------
+   Set from the side resize handles. Text reflows onto the next line as its
+   width shrinks; media stretches along that axis. Same declaration, different
+   result, because that is simply how the two element types lay out. */
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-width-mobile"] {
+	max-width: 100%;
+	width: var(--ldrn-vb-width-mobile);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-height-mobile"] {
+	height: var(--ldrn-vb-height-mobile);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-bg"] {
+	background-color: var(--ldrn-vb-bg);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-radius"] {
+	border-radius: var(--ldrn-vb-radius, 0px);
+	overflow: hidden;
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-border-width"] {
+	border-color: var(--ldrn-vb-border-color, currentColor);
+	border-style: var(--ldrn-vb-border-style, solid);
+	border-width: var(--ldrn-vb-border-width, 0px);
+}
+
+/* Typography ------------------------------------------------------------ */
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-font-size-mobile"] {
+	font-size: var(--ldrn-vb-font-size-mobile);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-font-weight"] {
+	font-weight: var(--ldrn-vb-font-weight);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-line-height"] {
+	line-height: var(--ldrn-vb-line-height);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-letter-spacing"] {
+	letter-spacing: var(--ldrn-vb-letter-spacing);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-color"] {
+	color: var(--ldrn-vb-color);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-text-align-mobile"] {
+	text-align: var(--ldrn-vb-text-align-mobile);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-text-transform"] {
+	text-transform: var(--ldrn-vb-text-transform);
+}
+
+/* Media ----------------------------------------------------------------- */
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-object-fit"] img,
+img[data-ldrn-vb-styled="true"][style*="--ldrn-vb-object-fit"] {
+	object-fit: var(--ldrn-vb-object-fit);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-aspect"] {
+	aspect-ratio: var(--ldrn-vb-aspect);
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-brightness"],
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-saturate"] {
+	filter: brightness(var(--ldrn-vb-brightness, 1)) saturate(var(--ldrn-vb-saturate, 1));
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-mask="circle"] {
+	border-radius: 50%;
+	overflow: hidden;
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-mask="arch"] {
+	border-radius: 50% 50% 12px 12px / 40% 40% 12px 12px;
+	overflow: hidden;
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-mask="squircle"] {
+	border-radius: 28%;
+	overflow: hidden;
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-tint-opacity"] {
+	position: relative;
+	isolation: isolate;
+}
+
+[data-ldrn-vb-styled="true"][style*="--ldrn-vb-tint-opacity"]::after {
+	background: var(--ldrn-vb-tint, transparent);
+	border-radius: inherit;
+	content: "";
+	inset: 0;
+	opacity: var(--ldrn-vb-tint-opacity, 0);
+	pointer-events: none;
+	position: absolute;
+	z-index: 1;
+}
+
+/* Shadow ---------------------------------------------------------------- */
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-shadow="soft"] {
+	box-shadow: 0 2px 10px rgba(32, 55, 42, .09);
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-shadow="medium"] {
+	box-shadow: 0 8px 24px rgba(32, 55, 42, .15);
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-shadow="strong"] {
+	box-shadow: 0 18px 44px rgba(32, 55, 42, .24);
+}
+
+/* Hover ----------------------------------------------------------------- */
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-hover]:not([data-ldrn-vb-hover="none"]) {
+	transition: box-shadow .25s ease, translate .25s ease, scale .25s ease, filter .25s ease;
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-hover="lift"]:hover {
+	box-shadow: 0 16px 34px rgba(32, 55, 42, .2);
+	translate: 0 -4px;
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-hover="zoom"]:hover {
+	scale: 1.04;
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-hover="glow"]:hover {
+	filter: brightness(1.08);
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-hover="underline"]:hover {
+	text-decoration: underline;
+	text-underline-offset: 4px;
+}
+
+/* Scroll animation ------------------------------------------------------ */
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-animate]:not([data-ldrn-vb-animate="none"]) {
+	transition: opacity .6s ease, translate .6s ease, scale .6s ease;
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-animate]:not([data-ldrn-vb-animate="none"])[data-ldrn-vb-inview="false"] {
+	opacity: 0;
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-animate="rise"][data-ldrn-vb-inview="false"] {
+	translate: 0 26px;
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-animate="slide"][data-ldrn-vb-inview="false"] {
+	translate: -26px 0;
+}
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-animate="zoom"][data-ldrn-vb-inview="false"] {
+	scale: .94;
+}
+
+/* Canvas quiet ----------------------------------------------------------- */
+
+/*
+ * Editable elements must be outlined only when hovered or selected.
+ *
+ * `editor.js` already says `outline: 2px dashed transparent`, but something in
+ * the app's own stylesheets was winning and painting a permanent dashed
+ * `currentColor` box on 37 of the 74 editable elements on the contact page -
+ * every field, every heading, every line of address. The client read the whole
+ * canvas as covered in boxes, which is exactly what it looked like. This
+ * restores the intended behaviour, and only inside the builder canvas: the
+ * attribute below is set by the editor and never exists on the public site.
+ */
+html[data-ldrn-vb-canvas-mode] [data-ldrn-vb-editable] {
+	/*
+	 * `outline-style`, not `outline-color`. The editor tried to hide these by
+	 * setting the colour to transparent and it did not hold - measured, 37 of
+	 * 74 elements still drew a dashed `currentColor` box. Suppressing the
+	 * style is what actually stops the browser painting it.
+	 */
+	outline-style: none !important;
+}
+
+html[data-ldrn-vb-canvas-mode] [data-ldrn-vb-editable]:hover,
+html[data-ldrn-vb-canvas-mode] [data-ldrn-vb-edit-selected] {
+	outline-style: dashed !important;
+	outline-color: #ff8a34 !important;
+}
+
+html[data-ldrn-vb-canvas-mode] [data-ldrn-vb-edit-selected] {
+	outline-style: solid !important;
+}
+
+/* Visibility ------------------------------------------------------------ */
+
+[data-ldrn-vb-styled="true"][data-ldrn-vb-hidden-mobile="true"] {
+	display: none !important;
+}
+
+/*
+ * Inside the builder canvas, while editing, a removed item stays on screen but
+ * ghosted. Genuinely hiding it there would strand the client: the only way to
+ * bring an item back is to select it, and you cannot click something that is
+ * not rendered. It still disappears completely in View mode and on the public
+ * page, because this attribute is only ever set by the editor.
+ */
+html[data-ldrn-vb-canvas-mode="edit"] [data-ldrn-vb-styled="true"][data-ldrn-vb-hidden-mobile="true"],
+html[data-ldrn-vb-canvas-mode="edit"] [data-ldrn-vb-styled="true"][data-ldrn-vb-hidden-tablet="true"],
+html[data-ldrn-vb-canvas-mode="edit"] [data-ldrn-vb-styled="true"][data-ldrn-vb-hidden-desktop="true"] {
+	display: revert !important;
+	opacity: .3;
+	outline: 1px dashed #b45309;
+	outline-offset: 2px;
+}
+
+/* Tablet ---------------------------------------------------------------- */
+
+@media (min-width: 640px) {
+	[data-ldrn-vb-styled="true"] {
+		rotate: var(--ldrn-vb-rotate-tablet, var(--ldrn-vb-rotate-mobile, 0deg));
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-padding-tablet"] {
+		padding: var(--ldrn-vb-padding-tablet);
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-width-tablet"] {
+		width: var(--ldrn-vb-width-tablet);
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-height-tablet"] {
+		height: var(--ldrn-vb-height-tablet);
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-font-size-tablet"] {
+		font-size: var(--ldrn-vb-font-size-tablet);
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-text-align-tablet"] {
+		text-align: var(--ldrn-vb-text-align-tablet);
+	}
+
+	[data-ldrn-vb-styled="true"][data-ldrn-vb-hidden-mobile="true"] {
+		display: revert !important;
+	}
+
+	[data-ldrn-vb-styled="true"][data-ldrn-vb-hidden-tablet="true"] {
+		display: none !important;
+	}
+}
+
+/* Desktop --------------------------------------------------------------- */
+
+@media (min-width: 1024px) {
+	[data-ldrn-vb-styled="true"] {
+		rotate: var(--ldrn-vb-rotate-desktop, var(--ldrn-vb-rotate-tablet, var(--ldrn-vb-rotate-mobile, 0deg)));
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-padding-desktop"] {
+		padding: var(--ldrn-vb-padding-desktop);
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-width-desktop"] {
+		width: var(--ldrn-vb-width-desktop);
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-height-desktop"] {
+		height: var(--ldrn-vb-height-desktop);
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-font-size-desktop"] {
+		font-size: var(--ldrn-vb-font-size-desktop);
+	}
+
+	[data-ldrn-vb-styled="true"][style*="--ldrn-vb-text-align-desktop"] {
+		text-align: var(--ldrn-vb-text-align-desktop);
+	}
+
+	[data-ldrn-vb-styled="true"][data-ldrn-vb-hidden-tablet="true"] {
+		display: revert !important;
+	}
+
+	[data-ldrn-vb-styled="true"][data-ldrn-vb-hidden-desktop="true"] {
+		display: none !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	[data-ldrn-vb-styled="true"][data-ldrn-vb-animate]:not([data-ldrn-vb-animate="none"]) {
+		opacity: 1 !important;
+		scale: none !important;
+		transition: none !important;
+		translate: none !important;
+	}
+}

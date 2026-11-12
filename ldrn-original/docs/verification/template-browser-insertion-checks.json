@@ -1,0 +1,182 @@
+[
+  {
+    "name": "Welcome hero",
+    "nodes": 9,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Split photo hero",
+    "nodes": 11,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Page introduction",
+    "nodes": 6,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Nursery overview",
+    "nodes": 11,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Nursery feature cards",
+    "nodes": 18,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Baby room",
+    "nodes": 11,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Toddler room",
+    "nodes": 11,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Preschool room",
+    "nodes": 11,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Learning through play",
+    "nodes": 11,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "EYFS learning areas",
+    "nodes": 27,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Daily routine",
+    "nodes": 15,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Photo gallery grid",
+    "nodes": 7,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Photo and caption",
+    "nodes": 7,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Nursery contact details",
+    "nodes": 17,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Opening hours",
+    "nodes": 6,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Visit invitation",
+    "nodes": 8,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Availability invitation",
+    "nodes": 8,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Closing call to action",
+    "nodes": 8,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Admissions steps",
+    "nodes": 17,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Fees introduction",
+    "nodes": 8,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Funding information",
+    "nodes": 8,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Download resources",
+    "nodes": 8,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Questions and answers",
+    "nodes": 15,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Parent stories",
+    "nodes": 7,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Upcoming events",
+    "nodes": 7,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Latest articles",
+    "nodes": 7,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Vacancy invitation",
+    "nodes": 7,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Event introduction",
+    "nodes": 8,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Article introduction",
+    "nodes": 7,
+    "sections": 2,
+    "unique": true
+  },
+  {
+    "name": "Careers introduction",
+    "nodes": 11,
+    "sections": 2,
+    "unique": true
+  }
+]

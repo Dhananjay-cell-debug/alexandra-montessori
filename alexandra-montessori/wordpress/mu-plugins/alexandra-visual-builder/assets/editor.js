@@ -2980,7 +2980,14 @@
 				return;
 			}
 			var type = node.getAttribute('data-am-vb-edit-type');
-			if ('video' !== type && ['IMG', 'INPUT', 'BR', 'HR'].indexOf(node.tagName) === -1) {
+			// Crop-mode media (a photo held inside a fixed-shape frame, e.g. the
+			// home hexagons) never gets frame resize/rotate handles - dragging one
+			// would warp the frame instead of the photo inside it. That element
+			// keeps its own move/zoom-the-photo dragging, wired separately from
+			// these handles. 'logo' (move-mode: icons, brand mark, footer badges)
+			// is unrelated and keeps this toolkit.
+			var isCropMedia = 'image' === type && 'crop' === node.getAttribute('data-am-vb-media-mode');
+			if (!isCropMedia && 'video' !== type && ['IMG', 'INPUT', 'BR', 'HR'].indexOf(node.tagName) === -1) {
 				// Corners scale proportionally, edges stretch a single axis, and
 				// the stalk above rotates. Every handle keeps the original class
 				// so existing hit-detection and teardown still find them.

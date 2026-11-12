@@ -212,10 +212,10 @@ const aboutContent = {
 
 /* ----------------------------------------------------- Hero video strip */
 function Hero() {
-  const defaultPoster = "/assets/videos/alexandra-promo-poster.webp";
+  const defaultPoster = "/assets/videos/alexandra-hero-smooth-poster-20261111.webp";
   const video = homeMedia(
     "hero-video",
-    "/assets/videos/alexandra-promo.mp4",
+    "/assets/videos/alexandra-hero-smooth-20261111.mp4",
     "Alexandra Montessori nursery life",
   );
   const poster = homeMedia(
@@ -230,14 +230,14 @@ function Hero() {
     earlyPoster?.mobile ||
     (customPoster
       ? poster.src
-      : "/assets/videos/alexandra-promo-poster-768-3f8765e4.webp");
+      : defaultPoster);
   const [videoEnabled, setVideoEnabled] = useState(() => inVisualBuilderCanvas());
   const [videoReady, setVideoReady] = useState(false);
   const videoEditable = editableMediaProps(
     "hero-video",
     "Home hero video",
     "crop",
-    "/assets/videos/alexandra-promo.mp4",
+    "/assets/videos/alexandra-hero-smooth-20261111.mp4",
     "Alexandra Montessori nursery life",
   );
 
@@ -254,31 +254,17 @@ function Hero() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!desktop || reducedMotion || slowConnection) return undefined;
 
-    let delayId;
-    let idleId;
     const enable = () => setVideoEnabled(true);
-    const schedule = () => {
-      delayId = window.setTimeout(() => {
-        if ("requestIdleCallback" in window) {
-          idleId = window.requestIdleCallback(enable, { timeout: 1500 });
-        } else {
-          enable();
-        }
-      }, 3000);
-    };
-
-    if (document.readyState === "complete") schedule();
-    else window.addEventListener("load", schedule, { once: true });
+    if (document.readyState === "complete") enable();
+    else window.addEventListener("load", enable, { once: true });
 
     return () => {
-      window.removeEventListener("load", schedule);
-      window.clearTimeout(delayId);
-      if (idleId && "cancelIdleCallback" in window) window.cancelIdleCallback(idleId);
+      window.removeEventListener("load", enable);
     };
   }, [videoEnabled]);
 
   return (
-    <section
+    <section data-am-ws="home.section-1"
       className="am-home-design-region am-home-hero relative h-[380px] overflow-hidden sm:h-[460px] lg:h-[540px]"
       data-am-vb-region="home-hero"
       style={homeSectionStyle("home-hero")}
@@ -314,7 +300,8 @@ function Hero() {
           preload="none"
           poster={asset(poster.src)}
           aria-hidden="true"
-          onCanPlay={() => setVideoReady(true)}
+          onPlaying={() => setVideoReady(true)}
+          onError={() => setVideoReady(false)}
         >
           {customVideo ? (
             <source
@@ -322,16 +309,10 @@ function Hero() {
               type={/\.webm(?:$|\?)/i.test(video.src) ? "video/webm" : "video/mp4"}
             />
           ) : (
-            <>
               <source
-                src={asset("/assets/videos/alexandra-promo-loop-960-4ae9b51b.webm")}
-                type="video/webm"
-              />
-              <source
-                src={asset("/assets/videos/alexandra-promo-loop-960-7a29c655.mp4")}
+                src={asset("/assets/videos/alexandra-hero-smooth-20261111.mp4")}
                 type="video/mp4"
               />
-            </>
           )}
         </video>
       ) : null}
@@ -345,7 +326,7 @@ function Hero() {
 /* ------------------------------- Peach three-column circular feature band */
 function FeatureLinks() {
   return (
-    <section
+    <section data-am-ws="home.section-2"
       className="am-home-design-region bg-sand py-12 sm:py-14"
       data-am-vb-region="home-feature-links"
       style={homeSectionStyle("home-feature-links")}
@@ -419,7 +400,7 @@ function FeatureLinks() {
 /* -------------------------------------------- White three-benefit icon row */
 function Benefits() {
   return (
-    <section
+    <section data-am-ws="home.section-3"
       className="am-home-design-region bg-white py-12 sm:py-16"
       data-am-vb-region="home-benefits"
       style={homeSectionStyle("home-benefits")}
@@ -467,7 +448,7 @@ function AboutUsBrief() {
     "The founders of Alexandra Montessori",
   );
   return (
-    <section
+    <section data-am-ws="home.section-4"
       className="am-home-design-region bg-sage-50 py-14 sm:py-20"
       data-am-vb-region="home-about"
       style={homeSectionStyle("home-about")}
@@ -537,7 +518,7 @@ function Testimonials() {
   );
 
   return (
-    <section
+    <section data-am-ws="home.section-5"
       className="am-home-design-region relative overflow-hidden py-16 sm:py-24"
       data-am-vb-region="home-testimonials"
       style={homeSectionStyle("home-testimonials")}
@@ -623,7 +604,7 @@ function Testimonials() {
 /* ------------------------------------------------------ Trust / accreditation */
 function Trust() {
   return (
-    <section
+    <section data-am-ws="home.section-6"
       className="am-home-design-region bg-white py-12 sm:py-16"
       data-am-vb-region="home-trust"
       style={homeSectionStyle("home-trust")}
@@ -790,7 +771,7 @@ function CustomHomeSections({ after }) {
   return customSections
     .filter((section) => section.after === after)
     .map((section) => (
-      <section
+      <section data-am-ws={`home.custom.${section.id}`}
         key={section.id}
         className="am-home-design-region am-home-custom-section"
         data-am-vb-region={`custom-${section.id}`}

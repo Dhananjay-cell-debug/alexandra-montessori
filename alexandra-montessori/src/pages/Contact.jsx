@@ -1,8 +1,7 @@
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
 import Reveal from "../components/Reveal";
 import Seo from "../components/Seo";
-import ContactForm from "../components/ContactForm";
 import { socialLinks } from "../data/socialLinks";
 import { locations } from "../data/site";
 import { gmailHref, telHref } from "../lib/contact";
@@ -13,9 +12,7 @@ export default function Contact() {
   const [params] = useSearchParams();
   // "Book a place" on an event detail page arrives with ?event=<title>.
   const eventTitle = params.get("event");
-  const defaultMessage = eventTitle
-    ? `I'd like to book a place at: ${eventTitle}.\n\n`
-    : "";
+  const eventQuery = eventTitle ? `?event=${encodeURIComponent(eventTitle)}` : "";
   return (
     <>
       <Seo
@@ -25,7 +22,7 @@ export default function Contact() {
       />
       <PageHeader title="Contact us" region="contact-header" />
 
-      <section className="bg-white pb-10 pt-2" data-am-vb-region="contact-directory">
+      <section data-am-ws="contact.section-1" className="bg-white pb-10 pt-2" data-am-vb-region="contact-directory">
         <div className="container-wide">
           <div className="grid gap-4 md:grid-cols-3">
             {locations.map((location, index) => (
@@ -57,6 +54,9 @@ export default function Contact() {
                 <p className="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-ink/85">
                   Ages {location.ageRange}
                 </p>
+                <Link to={`/nurseries/${location.id}${eventQuery}#contact`} className="btn-primary mt-5">
+                  Enquire at {location.name}
+                </Link>
               </Reveal>
             ))}
           </div>
@@ -85,30 +85,9 @@ export default function Contact() {
         </div>
       </section>
 
-      {/* Message form */}
-      <section className="bg-white py-12 sm:py-16">
-        <div className="container-wide">
-          <div className="text-center" data-am-vb-region="contact-form-intro">
-            <Reveal
-              as="h2"
-              className="font-heading text-3xl font-medium text-sage-800 sm:text-4xl"
-            >
-              Send us a message here
-            </Reveal>
-            <Reveal
-              as="p"
-              delay={100}
-              className="mx-auto mt-3 max-w-xl text-sm text-ink/85"
-            >
-              For booking a visit or a childcare enquiry, send us a message
-              below and we'll get back to you as soon as possible.
-            </Reveal>
-          </div>
-          <Reveal delay={150} className="mx-auto mt-10 max-w-3xl" data-am-vb-region="contact-form">
-            <ContactForm defaultMessage={defaultMessage} />
-          </Reveal>
-        </div>
-      </section>
+      <p className="container-wide pb-12 text-center text-sm text-ink/85">
+        Choose your nursery above to send the team an enquiry directly.
+      </p>
     </>
   );
 }

@@ -101,7 +101,7 @@ export default function Testimonials() {
       />
       <PageHeader title="Parent Testimonials" />
 
-      <section className="bg-white py-16 sm:py-20">
+      <section data-am-ws="testimonials.section-1" className="bg-white py-16 sm:py-20">
         <div className="container-wide">
           <Link
             to="/"

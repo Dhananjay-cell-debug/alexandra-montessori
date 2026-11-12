@@ -7,6 +7,7 @@ import Reveal from "../components/Reveal";
 import Seo from "../components/Seo";
 import { brand, locations } from "../data/site";
 import { createSubmissionKey, submitForm } from "../lib/api";
+import { trackMetaLead } from "../components/Analytics";
 import { asset } from "../lib/asset";
 import PhoneField from "../components/PhoneField";
 import { emailError, normalizeEmail } from "../lib/validation";
@@ -128,6 +129,7 @@ export default function Availability() {
       }, submissionKey.current);
       setReference(result.reference || "");
       setStatus("sent");
+      trackMetaLead();
     } catch (err) {
       setError(err.message);
       setStatus("idle");
@@ -148,7 +150,7 @@ export default function Availability() {
         intro="Tell us what you need and our admissions team will confirm current places, funded hours and the best next step for your family."
       />
 
-      <section className="bg-cream pb-16 pt-6 sm:pb-20">
+      <section data-am-ws="availability.section-1" className="bg-cream pb-16 pt-6 sm:pb-20">
         <div className="container-wide grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <Reveal className="space-y-6">
             <div className="overflow-hidden rounded-4xl bg-white shadow-card">
@@ -527,7 +529,7 @@ export default function Availability() {
         </div>
       </section>
 
-      <section className="bg-white py-12" data-am-vb-region="availability-support">
+      <section data-am-ws="availability.section-2" className="bg-white py-12" data-am-vb-region="availability-support">
         <div className="container-wide grid gap-5 md:grid-cols-3">
           {locations.map((location) => (
             <Reveal

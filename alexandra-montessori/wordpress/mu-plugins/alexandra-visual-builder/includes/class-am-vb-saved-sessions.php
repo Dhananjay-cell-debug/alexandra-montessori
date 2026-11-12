@@ -431,13 +431,9 @@ final class AM_VB_Saved_Sessions {
 	 * @return array<string,mixed>|null
 	 */
 	public static function frontend_snapshot($slug, $kind) {
-		$post = self::preview_post();
-		if (!$post
-			|| sanitize_key((string) get_post_meta($post->ID, self::META_SLUG, true)) !== sanitize_key($slug)
-			|| (string) get_post_meta($post->ID, self::META_KIND, true) !== $kind) {
-			return null;
-		}
-		$snapshot = get_post_meta($post->ID, self::META_SNAPSHOT, true);
+		// The Site Editor's saved sessions (alexandra-workspace) decide which
+		// saved layout a preview shows; the old builder preview link is retired.
+		$snapshot = apply_filters('am_vb_frontend_snapshot', null, $slug, $kind);
 		return is_array($snapshot) ? $snapshot : null;
 	}
 

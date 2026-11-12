@@ -1,4 +1,5 @@
 import { blogs as generatedBlogs } from "./blogs.generated";
+import { workspaceRequest } from "../lib/workspace-request";
 
 const cms = typeof window !== "undefined" ? window.amData : null;
 const cmsBlogs = Array.isArray(cms?.blogs)
@@ -75,7 +76,7 @@ export async function fetchBlogArchive(
   if (year) url.searchParams.set("year", String(year));
   if (month) url.searchParams.set("month", String(month));
   if (page > 1) url.searchParams.set("page", String(page));
-  return readJson(await fetch(url, { signal, credentials: "same-origin" }));
+  return readJson(await workspaceRequest(url, { signal, credentials: "same-origin" }));
 }
 
 export async function fetchBlogArticle(slug, signal) {
@@ -92,7 +93,7 @@ export async function fetchBlogArticle(slug, signal) {
   const url = `${cms.blogApiUrl.replace(/\/$/, "")}/${encodeURIComponent(slug)}`;
   try {
     return await readJson(
-      await fetch(url, { signal, credentials: "same-origin" }),
+      await workspaceRequest(url, { signal, credentials: "same-origin" }),
     );
   } catch (error) {
     if (error.status === 404) return null;

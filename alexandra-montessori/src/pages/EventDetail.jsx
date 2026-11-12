@@ -39,7 +39,7 @@ export default function EventDetail() {
       <>
         <Seo title="Event not found" path={`/events/${slug}`} />
         <PageHeader title="Event not found" region="event-detail-header" />
-        <section className="bg-white py-16 sm:py-20" data-am-vb-region="event-detail-fallback">
+        <section data-am-ws={`event-detail.${slug}.section-1`} className="bg-white py-16 sm:py-20" data-am-vb-region="event-detail-fallback">
           <div className="container-wide text-center">
             <p className="mx-auto max-w-xl font-body text-sm text-ink/85">
               We couldn't find that event. It may have already taken place.
@@ -75,7 +75,7 @@ export default function EventDetail() {
       />
       <PageHeader title={ev.title} crumb="Event" region="event-detail-header" />
 
-      <section className="bg-white py-14 sm:py-18" data-am-vb-region="event-detail-content">
+      <section data-am-ws={`event-detail.${slug}.section-2`} className="bg-white py-14 sm:py-18" data-am-vb-region="event-detail-content">
         <div className="container-wide max-w-4xl">
           {ev.image && (
             <Reveal>

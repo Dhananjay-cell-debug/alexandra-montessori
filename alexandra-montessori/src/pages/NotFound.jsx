@@ -3,7 +3,7 @@ import { Home, ArrowRight } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <section className="container-wide flex min-h-[70vh] flex-col items-center justify-center py-32 text-center">
+    <section data-am-ws="not-found.section-1" className="container-wide flex min-h-[70vh] flex-col items-center justify-center py-32 text-center">
       <p className="font-heading text-7xl font-medium text-sage-300">404</p>
       <h1 className="mt-4 text-3xl font-medium text-ink">Page not found</h1>
       <p className="mt-3 max-w-md text-pretty text-ink/90">

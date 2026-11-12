@@ -137,7 +137,7 @@ export default function Events() {
       <PageHeader title="News & Events" region="events-header" />
 
       {!hasAny ? (
-        <section className="bg-white py-20 sm:py-28" data-am-vb-region="events-state">
+        <section data-am-ws="events.section-1" className="bg-white py-20 sm:py-28" data-am-vb-region="events-state">
           <div className="container-wide">
             <Reveal className="mx-auto flex max-w-xl flex-col items-center text-center">
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-sage-50 text-sage-700">
@@ -158,7 +158,7 @@ export default function Events() {
           </div>
         </section>
       ) : (
-        <section className="bg-white py-16 sm:py-20" data-am-vb-region="events-state">
+        <section data-am-ws="events.section-2" className="bg-white py-16 sm:py-20" data-am-vb-region="events-state">
           <div className="container-wide space-y-16">
             <EventSection title="Upcoming Events" list={upcoming} />
             <EventSection title="Past Events" list={past} />

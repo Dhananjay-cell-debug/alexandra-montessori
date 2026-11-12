@@ -1,0 +1,119 @@
+{
+  "settings": [
+    {
+      "slug": "hounslow",
+      "name": "Hounslow",
+      "strapline": "Our main hub",
+      "status": "Open",
+      "active": true,
+      "address": [
+        "64 Pears Road",
+        "Hounslow",
+        "TW3 1SR"
+      ],
+      "phone": "020 4619 6231",
+      "email": "littlerainbowsdaynursery@yahoo.co.uk",
+      "hours": "Monday – Friday, 8am – 6pm",
+      "ages": "6 months – 5 years",
+      "places": 40,
+      "ofsted": {
+        "grade": "Good",
+        "date": "27 June 2025",
+        "urn": "EY545805"
+      },
+      "image": "/assets/photography/children-at-craft-table.jpg",
+      "imageAlt": "Children working together at a craft table",
+      "published": true
+    }
+  ],
+  "testimonials": [
+    {
+      "body": [
+        "To all the staff at Little Rainbows,",
+        "A huge thank you to all of you for not only taking care of and teaching my little one but for making him feel loved!",
+        "He joined Little Rainbows 3 years ago crying because he didn't want to leave my side; he now begs me to come to nursery and leaves every day with a smile :)",
+        "He will miss you all every day and I will also miss you all!"
+      ],
+      "attribution": "Love O's Mummy"
+    },
+    {
+      "body": [
+        "To all the teachers in Little Rainbows, it was a pleasure to have you take care of our niece and help her learn and get ready for reception.",
+        "Many thanks once again from"
+      ],
+      "attribution": "N's Auntie & Uncle"
+    },
+    {
+      "body": [
+        "Little Rainbows,",
+        "Where do I even start? I cannot even begin to say thank you for nurturing and loving my child for these last three and a half years. I remember his first day so clearly and now he's leaving and ready for school ...! How did that happen so quickly? Since the age of 8 months he's been with you! Thank you for allowing me to have endless chats with you most days about how his day has been. I know I'm ‘that’ parent! I just want to let you guys know I am nothing but grateful for all you've done for S. He has always loved nursery and has made a lovely group of friends. I just hope that he is cared for just as well in school.",
+        "Thanks again and I will bring S in to see you guys from time to time."
+      ],
+      "attribution": "Many Thanks S's Mummy & Daddy"
+    },
+    {
+      "body": [
+        "The Little Rainbows team,",
+        "I would just like to thank you all for looking after our little ones. You've been nothing but loving and caring towards not just them but us as well, and we thank you for that. We are going to miss seeing their smiles when they walk through the nursery doors."
+      ],
+      "attribution": "J's Family"
+    },
+    {
+      "body": [
+        "LITTLE RAINBOWS, WE ARE GOING TO MISS YOU!",
+        "C & E always talk about going to nursery even on weekends! They never want a break from Little Rainbows! Thank you for making it such a safe, loving and fun environment for them to be in. I couldn't have applied for a better nursery!"
+      ],
+      "attribution": "C & E's Family"
+    },
+    {
+      "body": [
+        "THANK YOU SO MUCH!",
+        "For all your patience day to day,\nFor every tear you wipe away,\nFor the little hands you gently hold,\nFor teaching how to share,\nFor being kind and being there,",
+        "YOUR TEAM IS SO WONDERFUL!"
+      ],
+      "attribution": "T's Mummy",
+      "poem": true
+    },
+    {
+      "body": [
+        "It takes a big heart to help shape a little human. Huge thank you to all the Little Rainbows staff!",
+        "V's Daddy and Family :)"
+      ],
+      "attribution": "V's Daddy & Family"
+    }
+  ],
+  "welcome": "At Little Rainbows Day Nursery, we believe that children learn best when they feel happy, safe, and free to explore through play.\n\nPlay is at the heart of everything we do. Through fun, age-appropriate activities and hands-on experiences, children are encouraged to use their imagination, build confidence, solve problems, make friends, and develop important social, emotional, physical, and thinking skills.\n\nWe understand that every child is unique and develops at their own pace. Our caring team creates a warm, welcoming, and inclusive environment where children feel supported to explore, discover new interests, and enjoy their learning journey.\n\nOur aim is to help every child grow with confidence, curiosity, and joy while creating happy memories and meaningful friendships along the way.",
+  "photos": [
+    "/assets/photography/children-at-craft-table.jpg",
+    "/assets/photography/child-waving-from-play-window.jpg",
+    "/assets/photography/child-drawing-with-crayons.jpg",
+    "/assets/photography/child-rolling-pin-and-cutter-dough.jpg",
+    "/assets/photography/children-playing-together-at-table.jpg",
+    "/assets/photography/child-at-story-and-circle-time.jpg",
+    "/assets/photography/children-building-wooden-train-track.jpg",
+    "/assets/photography/child-exploring-sensory-bag.jpg",
+    "/assets/photography/child-hands-green-playdough.jpg",
+    "/assets/photography/child-hands-on-picture-book-fox.jpg",
+    "/assets/photography/child-holding-fabric-book-bear-bananas.jpg",
+    "/assets/photography/child-pointing-in-classroom.jpg",
+    "/assets/photography/child-pointing-shapes-and-numbers-wall.png",
+    "/assets/photography/child-pressing-cutter-into-dough.jpg",
+    "/assets/photography/child-reading-fabric-book-bear-bee.jpg",
+    "/assets/photography/child-reading-fabric-book-elephant-egg.jpg"
+  ],
+  "brand": {
+    "name": "Little Rainbows Day Nursery",
+    "shortName": "Little Rainbows",
+    "tagline": "Learning Through Play",
+    "wordmark": {
+      "line1": "Little Rainbows",
+      "line2": "Day  Nursery"
+    },
+    "founded": 2005,
+    "email": "littlerainbowsdaynursery@yahoo.co.uk",
+    "phone": {
+      "general": "020 4619 6231",
+      "admissions": "020 3488 5577"
+    }
+  }
+}

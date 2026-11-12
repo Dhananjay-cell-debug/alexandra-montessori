@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, useSearchParams, Link, Navigate } from "react-router-dom";
 import {
   ArrowRight,
   MapPin,
@@ -14,9 +14,12 @@ import Icon from "../components/Icon";
 import Img from "../components/Img";
 import Seo from "../components/Seo";
 import { safeJsonLd } from "../lib/safeJsonLd";
-// BookingModal is intentionally retained (email/WP-enquiry flow) so the
-// swap back from Calendly is a one-line change - see src/lib/calendly.js
-import CalendlyModal from "../components/CalendlyModal";
+// Client request (2026-08-17): remove Calendly from the nursery "Book a
+// visit" button - use the email/WP-enquiry form instead, same as before.
+// CalendlyModal is kept in the codebase (src/components/CalendlyModal.jsx,
+// src/lib/calendly.js) in case Calendly is wanted again later.
+import BookingModal from "../components/BookingModal";
+import ContactForm from "../components/ContactForm";
 import { SectionHeading } from "../components/Section";
 import {
   brand,
@@ -83,6 +86,8 @@ function NurseryWelcomeImage({ loc }) {
 
 export default function NurseryDetail() {
   const { slug } = useParams();
+  const [searchParams] = useSearchParams();
+  const eventTitle = searchParams.get("event");
   const [calOpen, setCalOpen] = useState(false);
   const loc = locationBySlug(slug);
   // Lock every nursery page to the exact same three testimonials shown in the
@@ -141,7 +146,7 @@ export default function NurseryDetail() {
       />
 
       {/* 1 - Hero */}
-      <section className="relative flex min-h-[70vh] items-center overflow-hidden pt-24" data-am-vb-region="nursery-hero">
+      <section data-am-ws={`nursery-detail.${slug}.section-1`} className="relative flex min-h-[70vh] items-center overflow-hidden pt-24" data-am-vb-region="nursery-hero">
         <Img
           src={loc.image}
           alt={`The Alexandra Montessori ${loc.name} nursery`}
@@ -194,12 +199,15 @@ export default function NurseryDetail() {
             >
               <Phone className="h-4 w-4" /> {loc.phone}
             </a>
+            <a href="#contact" className="btn border border-cream/40 text-cream hover:bg-cream/10">
+              Contact {loc.name} <Mail className="h-4 w-4" />
+            </a>
           </Reveal>
         </div>
       </section>
 
       {/* 2 - Welcome */}
-      <section className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-welcome">
+      <section data-am-ws={`nursery-detail.${slug}.section-2`} className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-welcome">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <Reveal>
             <NurseryWelcomeImage loc={loc} />
@@ -216,7 +224,7 @@ export default function NurseryDetail() {
       </section>
 
       {/* 3 - Philosophy strip */}
-      <section className="relative overflow-hidden bg-sage-500 py-14" data-am-vb-region="nursery-philosophy">
+      <section data-am-ws={`nursery-detail.${slug}.section-3`} className="relative overflow-hidden bg-sage-500 py-14" data-am-vb-region="nursery-philosophy">
         <div className="grid-bg absolute inset-0 opacity-15" />
         <div className="container-wide relative flex flex-col items-center gap-5 text-center">
           <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15 text-white ring-1 ring-inset ring-white/25">
@@ -234,7 +242,7 @@ export default function NurseryDetail() {
 
       {/* 3b - A peek inside (gallery) */}
       {galleryImages.length > 0 ? (
-        <section className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-gallery">
+        <section data-am-ws={`nursery-detail.${slug}.section-4`} className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-gallery">
           <SectionHeading
             eyebrow="A peek inside"
             title={`Life at our ${loc.name} nursery`}
@@ -254,7 +262,7 @@ export default function NurseryDetail() {
       ) : null}
 
       {/* 4 - Features grid */}
-      <section className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-features">
+      <section data-am-ws={`nursery-detail.${slug}.section-5`} className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-features">
         <SectionHeading
           eyebrow="What we offer"
           title={featureHeading}
@@ -280,14 +288,14 @@ export default function NurseryDetail() {
 
       {/* 5 - Healthy meals */}
       {showMealSection ? (
-        <section className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-meals">
+        <section data-am-ws={`nursery-detail.${slug}.section-6`} className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-meals">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
               <SectionHeading
                 align="left"
-                eyebrow="Healthy meals & nutrition"
-                title="Freshly prepared meals and snacks"
-                intro="Nutritious, balanced meals and snacks are prepared with careful support for allergies and dietary needs."
+                eyebrow="Vegetarian food & nutrition"
+                title="Freshly prepared vegetarian meals and snacks"
+                intro="Our vegetarian setting offers nutritious, balanced meals and snacks. We work with families to understand each child's allergies and dietary needs."
               />
             </div>
             <Reveal className="grid grid-cols-2 gap-4">
@@ -314,7 +322,7 @@ export default function NurseryDetail() {
       ) : null}
 
       {/* 6 - Meet the team */}
-      <section className="relative overflow-hidden bg-sand py-20" data-am-vb-region="nursery-team">
+      <section data-am-ws={`nursery-detail.${slug}.section-7`} className="relative overflow-hidden bg-sand py-20" data-am-vb-region="nursery-team">
         <div className="grid-bg absolute inset-0 opacity-10" />
         <div className="container-wide relative">
           <SectionHeading
@@ -353,7 +361,7 @@ export default function NurseryDetail() {
       </section>
 
       {/* 8 - Partnership with parents */}
-      <section className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-partnership">
+      <section data-am-ws={`nursery-detail.${slug}.section-8`} className="container-wide py-16 sm:py-20" data-am-vb-region="nursery-partnership">
         <SectionHeading
           eyebrow="Partnership with parents"
           title="We work hand in hand with families"
@@ -381,7 +389,7 @@ export default function NurseryDetail() {
       </section>
 
       {/* 9 - Contact info block */}
-      <section className="container-wide pb-16" data-am-vb-region="nursery-contact">
+      <section data-am-ws={`nursery-detail.${slug}.section-9`} className="container-wide pb-16" data-am-vb-region="nursery-contact">
         <Reveal className="grid gap-4 rounded-4xl bg-sage-500 p-8 text-cream sm:grid-cols-3 sm:p-10">
           <div className="flex items-start gap-3">
             <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-sage-200" />
@@ -425,8 +433,22 @@ export default function NurseryDetail() {
         </Reveal>
       </section>
 
+      <section id="contact" data-am-ws={`nursery-detail.${slug}.contact`} className="container-wide scroll-mt-8 pb-16" data-am-vb-region="nursery-enquiry">
+        <div className="mx-auto max-w-3xl rounded-4xl border border-sage-100 bg-white p-6 shadow-soft sm:p-10">
+          <SectionHeading
+            align="left"
+            eyebrow="Contact us"
+            title={`Enquire about ${loc.name}`}
+            intro={`Ask the ${loc.name} team about a place, arrange a visit or share a question. Your enquiry goes directly to this nursery.`}
+          />
+          <div className="mt-8">
+            <ContactForm key={loc.id} defaultBranch={loc.id} defaultMessage={eventTitle ? `I'd like to book a place at: ${eventTitle}.\n\n` : ""} />
+          </div>
+        </div>
+      </section>
+
       {/* 11 - Accreditations */}
-      <section className="container-wide pb-16" data-am-vb-region="nursery-accreditations">
+      <section data-am-ws={`nursery-detail.${slug}.section-10`} className="container-wide pb-16" data-am-vb-region="nursery-accreditations">
         <Reveal className="rounded-4xl border border-sage-100 bg-white p-8 shadow-soft">
           <div className="mx-auto grid w-full max-w-[26rem] gap-4 sm:max-w-4xl sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
             {accreditations.map((b) => (
@@ -448,7 +470,7 @@ export default function NurseryDetail() {
 
       {/* 12 - Testimonials */}
       {nurseryTestimonials.length > 0 ? (
-        <section className="container-wide pb-20" data-am-vb-region="nursery-testimonials">
+        <section data-am-ws={`nursery-detail.${slug}.section-11`} className="container-wide pb-20" data-am-vb-region="nursery-testimonials">
           <SectionHeading
             eyebrow="What parents say"
             title={`Families love ${loc.name}`}
@@ -492,8 +514,7 @@ export default function NurseryDetail() {
       ) : null}
 
       {/* Booking popup for THIS nursery - opens from the hero "Book a visit" button */}
-      <CalendlyModal
-        region="nursery-booking-modal"
+      <BookingModal
         open={calOpen}
         onClose={() => setCalOpen(false)}
         nursery={loc}

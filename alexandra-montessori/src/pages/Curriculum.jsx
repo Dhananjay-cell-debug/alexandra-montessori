@@ -89,7 +89,7 @@ function CurriculumSection({
   );
 
   return (
-    <section className={`${background} py-14 sm:py-20`} data-am-vb-region={region}>
+    <section data-am-ws={region ? `curriculum.${region}` : undefined} className={`${background} py-14 sm:py-20`} data-am-vb-region={region}>
       <div className="container-wide">
         <Reveal
           as="h2"

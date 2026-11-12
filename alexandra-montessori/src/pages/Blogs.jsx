@@ -48,6 +48,7 @@ function ArticleCard({ post, index }) {
   return (
     <Reveal delay={index * 70}>
       <Link
+        data-am-ws={`article-card.${post.slug}`}
         to={`/blogs/${post.slug}`}
         className="card card-hover group flex h-full flex-col overflow-hidden"
       >
@@ -157,7 +158,7 @@ export default function Blogs() {
         intro="Friendly, practical reading to support you and your child - from settling in to understanding the Montessori approach and funded childcare."
       />
 
-      <section
+      <section data-am-ws="blogs.section-1"
         className="border-b border-sage-100 bg-sage-50/60"
         aria-label="Blog archive filters"
         data-am-vb-region="blogs-filters"
@@ -194,7 +195,7 @@ export default function Blogs() {
       </section>
 
       {featured && (
-        <section className="container-wide pb-8 pt-2" data-am-vb-region="blogs-featured">
+        <section data-am-ws="blogs.section-2" className="container-wide pb-8 pt-2" data-am-vb-region="blogs-featured">
           <p className="eyebrow mb-5">Featured article</p>
           <Reveal>
             <Link
@@ -232,7 +233,7 @@ export default function Blogs() {
         </section>
       )}
 
-      <section
+      <section data-am-ws="blogs.section-3"
         className="container-wide py-10 sm:py-14"
         aria-busy={loadState === "loading"}
         data-am-vb-region="blogs-archive"

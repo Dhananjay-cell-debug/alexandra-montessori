@@ -1,0 +1,13 @@
+# ldrn.krildigital.com — STAGING / CLIENT PREVIEW, not the live site.
+#
+# The live site is https://www.littlerainbowsdaynursery.com, and this build's
+# canonical / og:url / JSON-LD already point there. This copy must therefore
+# stay out of search indexes: indexing it would put duplicate content against
+# the client's real domain, and this build still contains unresolved
+# [[ TBC ]] placeholders (see docs/04-OPEN-QUESTIONS.md).
+#
+# AT GO-LIVE: delete this file (or replace the block with a real Allow +
+# Sitemap) and set SITE_URL in src/lib/structuredData.js to the final domain.
+
+User-agent: *
+Disallow: /

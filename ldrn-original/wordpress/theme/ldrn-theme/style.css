@@ -1,0 +1,13 @@
+/*
+Theme Name: Little Rainbows Day Nursery
+Theme URI: http://ldrn.local
+Author: Dhananjay
+Description: Custom WordPress theme for Little Rainbows Day Nursery React/Vite migration.
+Version: 1.0.0
+Text Domain: ldrn
+*/
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

@@ -1,0 +1,6 @@
+{
+  "site_url": "https://ldrn.krildigital.com",
+  "ftp": {"host": "", "port": 21, "user": "", "password": "", "protocol": "ftps"},
+  "database": {"host": "localhost", "name": "", "user": "", "password": "", "dedicated_empty_database": true},
+  "administrator": {"login": "", "email": "", "password": ""}
+}

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { fileURLToPath } from 'node:url'
 
 // https://vite.dev/config/
 //
@@ -10,7 +11,13 @@ import react from '@vitejs/plugin-react'
 // the live site and keeps client-side routing working on nested routes.
 export default defineConfig(() => ({
   base: '/',
-  plugins: [react()],
+  // Link and button labels become their own editable layers in the Site
+  // Editor (src/lib/editable-labels.js), exactly as on the LDRN site.
+  plugins: [react({ jsxImportSource: '@am/editable' })],
+  resolve: { alias: {
+    '@am/editable/jsx-runtime': fileURLToPath(new URL('./src/lib/editable-jsx-runtime.js', import.meta.url)),
+    '@am/editable/jsx-dev-runtime': fileURLToPath(new URL('./src/lib/editable-jsx-dev-runtime.js', import.meta.url)),
+  } },
   server: {
     port: 5173,
     open: true,

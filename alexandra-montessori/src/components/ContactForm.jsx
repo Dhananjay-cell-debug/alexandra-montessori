@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { brand, locations } from "../data/site";
 import { createSubmissionKey, submitForm } from "../lib/api";
+import { trackMetaLead } from "./Analytics";
 import { gmailHref } from "../lib/contact";
 import PhoneField from "./PhoneField";
 import { emailError, normalizeEmail } from "../lib/validation";
@@ -56,6 +57,7 @@ export default function ContactForm({ defaultBranch = "", defaultMessage = "" })
       }, submissionKey.current);
       setReference(result.reference || "");
       setStatus("sent");
+      trackMetaLead();
     } catch (err) {
       setError(err.message);
       setStatus("idle");
@@ -151,7 +153,12 @@ export default function ContactForm({ defaultBranch = "", defaultMessage = "" })
           fieldClassName={field}
         />
       </div>
-      <label className="block">
+      {defaultBranch ? (
+        <div className="rounded-xl bg-sage-50 px-4 py-3 text-sm text-sage-800">
+          <input type="hidden" name="branch" value={defaultBranch} />
+          Your enquiry is for <strong>{selectedLocation?.name}</strong> nursery.
+        </div>
+      ) : <label className="block">
         <span className={label}>Branch</span>
         <select
           required
@@ -183,7 +190,7 @@ export default function ContactForm({ defaultBranch = "", defaultMessage = "" })
             .
           </span>
         )}
-      </label>
+      </label>}
       <label className="block">
         <span className={label}>Message *</span>
         <textarea

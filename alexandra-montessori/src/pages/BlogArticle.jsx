@@ -92,7 +92,7 @@ export default function BlogArticle() {
 
   if (!post && loadState === "loading") {
     return (
-      <section className="container-wide py-16 sm:py-20" aria-live="polite" data-am-vb-region="blog-loading">
+      <section data-am-ws={`article.${slug}.section-1`} className="container-wide py-16 sm:py-20" aria-live="polite" data-am-vb-region="blog-loading">
         <div className="card mx-auto max-w-3xl p-8 text-center sm:p-12">
           <p className="eyebrow justify-center">Blogs & Resources</p>
           <h1 className="mt-4 font-heading text-3xl font-medium text-sage-800 sm:text-4xl">
@@ -108,7 +108,7 @@ export default function BlogArticle() {
 
   if (!post && loadState === "error") {
     return (
-      <section className="container-wide py-16 sm:py-20" data-am-vb-region="blog-error">
+      <section data-am-ws={`article.${slug}.section-2`} className="container-wide py-16 sm:py-20" data-am-vb-region="blog-error">
         <div className="card mx-auto max-w-3xl p-8 text-center sm:p-12">
           <p className="eyebrow justify-center">Blogs & Resources</p>
           <h1 className="mt-4 font-heading text-3xl font-medium text-sage-800 sm:text-4xl">
@@ -137,7 +137,7 @@ export default function BlogArticle() {
           description="The requested Alexandra Montessori article could not be found."
           path="/blogs"
         />
-        <section className="container-wide py-16 sm:py-20" data-am-vb-region="blog-not-found">
+        <section data-am-ws={`article.${slug}.section-3`} className="container-wide py-16 sm:py-20" data-am-vb-region="blog-not-found">
           <div className="card mx-auto max-w-3xl p-8 text-center sm:p-12">
             <p className="eyebrow justify-center">Blogs & Resources</p>
             <h1 className="mt-4 font-heading text-3xl font-medium text-sage-800 sm:text-4xl">
@@ -168,7 +168,7 @@ export default function BlogArticle() {
         image={post.image}
       />
 
-      <section className="container-wide pb-10 pt-8 sm:pb-12 sm:pt-12" data-am-vb-region="blog-hero">
+      <section data-am-ws={`article.${slug}.section-4`} className="container-wide pb-10 pt-8 sm:pb-12 sm:pt-12" data-am-vb-region="blog-hero">
         <Link
           to="/blogs"
           className="inline-flex items-center gap-2 text-sm font-semibold text-sage-700 transition-colors hover:text-sage-900"
@@ -211,7 +211,7 @@ export default function BlogArticle() {
         </div>
       </section>
 
-      <section className="container-wide pb-8" data-am-vb-region="blog-content">
+      <section data-am-ws={`article.${slug}.section-5`} className="container-wide pb-8" data-am-vb-region="blog-content">
         <Reveal>
           <article className="card overflow-hidden p-7 sm:p-10 lg:p-12">
             <div
@@ -222,7 +222,7 @@ export default function BlogArticle() {
         </Reveal>
       </section>
 
-      <section className="container-wide py-8 sm:py-10" data-am-vb-region="blog-related">
+      <section data-am-ws={`article.${slug}.section-6`} className="container-wide py-8 sm:py-10" data-am-vb-region="blog-related">
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow">More to read</p>

@@ -26,7 +26,7 @@ export default function Apply() {
       />
       <PageHeader title={job ? "Apply for this role" : "Apply"} region="apply-header" />
 
-      <section className="bg-white py-16 sm:py-20" data-am-vb-region="apply-form">
+      <section data-am-ws="apply.section-1" className="bg-white py-16 sm:py-20" data-am-vb-region="apply-form">
         <div className="container-wide">
           {/* Polite notice when a slug was given but the vacancy is no longer listed */}
           {slug && !job && (

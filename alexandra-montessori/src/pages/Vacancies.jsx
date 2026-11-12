@@ -153,7 +153,7 @@ export default function Vacancies() {
       />
       <PageHeader title="Current Vacancies" region="vacancies-header" />
 
-      <section className="bg-cream py-16 sm:py-20" data-am-vb-region="vacancies-archive">
+      <section data-am-ws="vacancies.section-1" className="bg-cream py-16 sm:py-20" data-am-vb-region="vacancies-archive">
         <div className="container-wide">
           {allJobs.length === 0 ? (
             /* ── no jobs at all ── */

@@ -1,0 +1,143 @@
+:root {
+	--ldrn-vb-green-950: #20372a;
+	--ldrn-vb-green-800: #345b40;
+	--ldrn-vb-green-600: #5e8062;
+	--ldrn-vb-sage-100: #dfeadd;
+	--ldrn-vb-cream: #fffdf8;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+.ldrn-vb-page {
+	background: #fff;
+	color: var(--ldrn-vb-green-950);
+	font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	margin: 0;
+	overflow: hidden;
+	width: 100%;
+}
+
+.ldrn-vb-section {
+	position: relative;
+	width: 100%;
+}
+
+.ldrn-vb-layout--stack {
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.ldrn-vb-layout--grid {
+	align-items: stretch;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ldrn-vb-layout--layered {
+	position: relative;
+}
+
+.ldrn-vb-layout--layered > .ldrn-vb-node {
+	position: absolute;
+}
+
+.ldrn-vb-node {
+	box-sizing: border-box;
+	margin-block-start: 0;
+	max-width: 100%;
+}
+
+.ldrn-vb-node-type--button {
+	align-items: center;
+	display: inline-flex;
+	justify-content: center;
+	text-decoration: none;
+	width: max-content;
+}
+
+.ldrn-vb-node-type--image {
+	display: block;
+}
+
+.ldrn-vb-node-type--shape {
+	display: block;
+	pointer-events: none;
+}
+
+.ldrn-vb-shape--circle {
+	border-radius: 50%;
+}
+
+.ldrn-vb-shape--pill {
+	border-radius: 999px;
+}
+
+.ldrn-vb-shape--line {
+	height: 3px !important;
+}
+
+.ldrn-vb-shape--triangle {
+	clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.ldrn-vb-image-placeholder {
+	align-items: center;
+	background: repeating-linear-gradient(45deg, #edf1ed, #edf1ed 12px, #e2e8e3 12px, #e2e8e3 24px);
+	border: 1px dashed #8ea093;
+	color: #526259;
+	display: flex;
+	justify-content: center;
+	min-height: 160px;
+	padding: 20px;
+}
+
+.ldrn-vb-preview-body {
+	background: #eef1ed;
+	margin: 0;
+	min-height: 100vh;
+	padding-top: 45px;
+}
+
+.ldrn-vb-preview-notice {
+	align-items: center;
+	background: #17251c;
+	color: #fff;
+	display: flex;
+	font: 13px/1.3 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	height: 45px;
+	justify-content: space-between;
+	left: 0;
+	padding: 0 22px;
+	position: fixed;
+	right: 0;
+	top: 0;
+	z-index: 99999;
+}
+
+.ldrn-vb-preview-notice a {
+	background: #fff;
+	border-radius: 999px;
+	color: #20372a;
+	font-weight: 700;
+	padding: 7px 14px;
+	text-decoration: none;
+}
+
+.ldrn-vb-page--preview {
+	margin: 0 auto;
+	max-width: 1600px;
+}
+
+@media (max-width: 600px) {
+	.ldrn-vb-layout--grid {
+		grid-template-columns: 1fr;
+	}
+
+	.ldrn-vb-preview-notice span {
+		max-width: 72%;
+	}
+}

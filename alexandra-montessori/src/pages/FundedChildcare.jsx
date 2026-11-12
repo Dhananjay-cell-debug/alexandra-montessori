@@ -33,7 +33,7 @@ export default function FundedChildcare() {
       />
 
       {/* Funding schemes */}
-      <section className="container-wide pb-6 pt-2" data-am-vb-region="funding-offerings">
+      <section data-am-ws="funded-childcare.section-1" className="container-wide pb-6 pt-2" data-am-vb-region="funding-offerings">
         <SectionHeading
           align="left"
           eyebrow="Our funded childcare offerings"
@@ -71,7 +71,7 @@ export default function FundedChildcare() {
       </section>
 
       {/* How to apply */}
-      <section className="relative overflow-hidden bg-sand py-20" data-am-vb-region="funding-apply">
+      <section data-am-ws="funded-childcare.section-2" className="relative overflow-hidden bg-sand py-20" data-am-vb-region="funding-apply">
         <div className="grid-bg absolute inset-0 opacity-10" />
         <div className="container-wide relative">
           <SectionHeading
@@ -104,7 +104,7 @@ export default function FundedChildcare() {
       </section>
 
       {/* Why choose us */}
-      <section className="container-wide py-16 sm:py-20" data-am-vb-region="funding-benefits">
+      <section data-am-ws="funded-childcare.section-3" className="container-wide py-16 sm:py-20" data-am-vb-region="funding-benefits">
         <SectionHeading
           eyebrow="Why choose Alexandra Montessori?"
           title="Funded hours, full Montessori experience"
@@ -131,7 +131,7 @@ export default function FundedChildcare() {
       </section>
 
       {/* Fees & resources */}
-      <section className="bg-sand py-16 sm:py-20" data-am-vb-region="funding-resources">
+      <section data-am-ws="funded-childcare.section-4" className="bg-sand py-16 sm:py-20" data-am-vb-region="funding-resources">
         <div className="container-wide grid gap-10 lg:grid-cols-2 lg:gap-14">
           {/* Fee sheets */}
           <Reveal className="card flex h-full flex-col p-8 sm:p-10">
@@ -203,7 +203,7 @@ export default function FundedChildcare() {
       </section>
 
       {/* FAQ */}
-      <section className="container-wide py-16" data-am-vb-region="funding-faq">
+      <section data-am-ws="funded-childcare.section-5" className="container-wide py-16" data-am-vb-region="funding-faq">
         <Reveal className="card mx-auto max-w-3xl p-8">
           <h2 className="font-heading text-xl font-medium text-ink">
             Funding FAQs

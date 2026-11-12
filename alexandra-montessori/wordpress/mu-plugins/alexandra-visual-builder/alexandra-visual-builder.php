@@ -58,30 +58,17 @@ final class AM_VB_Plugin {
 			return;
 		}
 
-		add_action('init', array('AM_VB_Capabilities', 'maybe_install'), 3);
-		AM_VB_Access::boot();
+		// 2026-10-17: the Visual Builder editor is retired - the Site Editor
+		// (plugins/alexandra-workspace, ported from LDRN) replaces it, and its
+		// saved sessions now live in All saved sessions. Only the renderer of
+		// the layout it saved stays, so visitors see the site exactly as before.
+		// No menu, editor screen, REST routes, preview or user allocation.
 		add_action('init', array('AM_VB_Document', 'register_post_type'), 5);
-		add_action('init', array('AM_VB_Template', 'register_post_type'), 6);
 		add_action('init', array('AM_VB_Audit', 'register_post_type'), 7);
 		add_action('init', array('AM_VB_Saved_Sessions', 'register_post_type'), 8);
-		add_action('init', array('AM_VB_Document', 'maybe_migrate'), 25);
-		add_action('init', array('AM_VB_Document', 'maybe_seed'), 30);
-		add_action('init', array('AM_VB_Site_Design', 'maybe_seed_pages'), 31);
-		add_action('rest_api_init', array('AM_VB_REST', 'register_routes'));
-		add_action('rest_api_init', array('AM_VB_Home_Design', 'register_routes'));
-		add_action('rest_api_init', array('AM_VB_Site_Design', 'register_routes'));
-		add_action('rest_api_init', array('AM_VB_Organizer', 'register_routes'));
-		add_action('rest_api_init', array('AM_VB_Saved_Sessions', 'register_routes'));
-		add_action('admin_menu', array('AM_VB_Admin', 'register_menu'), 20);
-		add_action('admin_enqueue_scripts', array('AM_VB_Admin', 'enqueue_assets'));
-		add_action('admin_footer-toplevel_page_am_content', array('AM_VB_Admin', 'render_workspace_entry'));
-		add_action('template_redirect', array('AM_VB_Admin', 'maybe_render_preview'), 0);
-		add_action('template_redirect', array('AM_VB_Saved_Sessions', 'authorize_preview'), -5);
 		add_action('wp_enqueue_scripts', array('AM_VB_Style_Schema', 'enqueue_frontend'), 28);
 		add_action('wp_enqueue_scripts', array('AM_VB_Home_Design', 'localize_frontend'), 29);
 		add_action('wp_enqueue_scripts', array('AM_VB_Site_Design', 'localize_frontend'), 29);
-		add_action('wp_enqueue_scripts', array('AM_VB_Admin', 'enqueue_preview_assets'), 30);
-		add_action('wp_footer', array('AM_VB_Saved_Sessions', 'render_preview_banner'), 100);
 	}
 }
 

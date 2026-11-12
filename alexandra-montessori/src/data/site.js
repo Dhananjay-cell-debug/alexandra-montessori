@@ -129,7 +129,6 @@ export const nav = [
 
 export const parentInfoLinks = [
   { label: "Fees", to: "/fees" },
-  { label: "Fee Calculator", to: "/fee-calculator" },
   { label: "Funded Childcare", to: "/funded-childcare" },
   { label: "Blog", to: "/blogs" },
   { label: "Food Hygiene Rating", to: "/food-hygiene-rating" },

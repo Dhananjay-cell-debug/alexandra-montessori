@@ -1,0 +1,149 @@
+[
+  {
+    "route": "/",
+    "anchors": 9,
+    "duplicates": [],
+    "main": true,
+    "title": "Little Rainbows Day Nursery | Day Care in West London"
+  },
+  {
+    "route": "/settings",
+    "anchors": 2,
+    "duplicates": [],
+    "main": true,
+    "title": "Our Nursery | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/settings/hounslow",
+    "anchors": 16,
+    "duplicates": [],
+    "main": true,
+    "title": "Hounslow Nursery | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/curriculum",
+    "anchors": 3,
+    "duplicates": [],
+    "main": true,
+    "title": "Curriculum | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/careers",
+    "anchors": 6,
+    "duplicates": [],
+    "main": true,
+    "title": "Careers | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/events",
+    "anchors": 1,
+    "duplicates": [],
+    "main": true,
+    "title": "News & Events | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/contact",
+    "anchors": 2,
+    "duplicates": [],
+    "main": true,
+    "title": "Contact | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/check-availability",
+    "anchors": 2,
+    "duplicates": [],
+    "main": true,
+    "title": "Check Availability | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/fees",
+    "anchors": 1,
+    "duplicates": [],
+    "main": true,
+    "title": "Admissions & Fees | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/fee-calculator",
+    "anchors": 1,
+    "duplicates": [],
+    "main": true,
+    "title": "Funding Estimate | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/funded-childcare",
+    "anchors": 5,
+    "duplicates": [],
+    "main": true,
+    "title": "Funded Childcare | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/blogs",
+    "anchors": 1,
+    "duplicates": [],
+    "main": true,
+    "title": "Blog | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/food-hygiene-rating",
+    "anchors": 1,
+    "duplicates": [],
+    "main": true,
+    "title": "Food Hygiene Rating | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/admissions",
+    "anchors": 1,
+    "duplicates": [],
+    "main": true,
+    "title": "Admissions | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/testimonials",
+    "anchors": 5,
+    "duplicates": [],
+    "main": true,
+    "title": "Parent Testimonials | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/about/ofsted",
+    "anchors": 1,
+    "duplicates": [],
+    "main": true,
+    "title": "Ofsted Reports | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/privacy",
+    "anchors": 0,
+    "duplicates": [],
+    "main": true,
+    "title": "Privacy Policy | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/about",
+    "anchors": 5,
+    "duplicates": [],
+    "main": true,
+    "title": "About Us | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/careers/vacancies",
+    "anchors": 1,
+    "duplicates": [],
+    "main": true,
+    "title": "Current Vacancies | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/careers/apply",
+    "anchors": 1,
+    "duplicates": [],
+    "main": true,
+    "title": "Apply | Little Rainbows Day Nursery"
+  },
+  {
+    "route": "/book-a-visit",
+    "anchors": 2,
+    "duplicates": [],
+    "main": true,
+    "title": "Check Availability | Little Rainbows Day Nursery"
+  }
+]
